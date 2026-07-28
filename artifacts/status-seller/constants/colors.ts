@@ -1,0 +1,60 @@
+/**
+ * StatusSeller brand tokens.
+ * Primary: WhatsApp-inspired green (#25D366) — fitting for a WhatsApp Status commerce platform.
+ * Dark mode fully supported.
+ */
+const colors = {
+  light: {
+    text: '#111827',
+    tint: '#25D366',
+    background: '#FFFFFF',
+    foreground: '#111827',
+    card: '#F9FAFB',
+    cardForeground: '#111827',
+    primary: '#25D366',
+    primaryForeground: '#FFFFFF',
+    primaryLight: '#DCFCE7',
+    secondary: '#F3F4F6',
+    secondaryForeground: '#374151',
+    muted: '#F3F4F6',
+    mutedForeground: '#6B7280',
+    accent: '#1A73E8',
+    accentForeground: '#FFFFFF',
+    destructive: '#EF4444',
+    destructiveForeground: '#FFFFFF',
+    border: '#E5E7EB',
+    input: '#F3F4F6',
+    success: '#22C55E',
+    warning: '#F59E0B',
+    info: '#3B82F6',
+    overlay: 'rgba(0,0,0,0.5)',
+  },
+  dark: {
+    text: '#F9FAFB',
+    tint: '#25D366',
+    background: '#0D1117',
+    foreground: '#F9FAFB',
+    card: '#161B22',
+    cardForeground: '#F9FAFB',
+    primary: '#25D366',
+    primaryForeground: '#FFFFFF',
+    primaryLight: '#052E16',
+    secondary: '#21262D',
+    secondaryForeground: '#E2E8F0',
+    muted: '#21262D',
+    mutedForeground: '#8B949E',
+    accent: '#4A9EFF',
+    accentForeground: '#FFFFFF',
+    destructive: '#F87171',
+    destructiveForeground: '#FFFFFF',
+    border: '#30363D',
+    input: '#21262D',
+    success: '#4ADE80',
+    warning: '#FCD34D',
+    info: '#60A5FA',
+    overlay: 'rgba(0,0,0,0.7)',
+  },
+  radius: 16,
+};
+
+export default colors;

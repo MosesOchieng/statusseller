@@ -1,0 +1,408 @@
+Build a modern, production-ready mobile application called StatusSeller. The app enables businesses to turn their WhatsApp Status, Instagram Stories, Facebook Stories, TikTok posts, and other social media content into interactive shopping experiences.
+
+The design should feel like a mix of Apple, Shopify, Stripe, WhatsApp, and Notion with a clean white interface, rounded corners (20–24px), subtle shadows, smooth animations, and premium typography. Every interaction should feel fast and polished.
+
+Authentication
+Implement secure authentication using:
+
+Email & Password
+Google Sign In
+Apple Sign In (iOS)
+Phone Number (OTP)
+Optional WhatsApp Business account connection
+After signup, guide merchants through a short onboarding process to create their store.
+
+Merchant Dashboard
+The home screen should display:
+
+Today’s Sales
+Orders
+Revenue
+Products
+Active Shopping Links
+AI Conversations
+Store Performance
+Quick Actions
+Use modern dashboard cards with charts and analytics.
+
+Products
+Businesses can:
+
+Add products
+Upload multiple photos
+Upload videos
+Enter product title
+Description
+Price
+Discount
+Stock
+SKU
+Variants (size, color, weight)
+Categories
+Shipping information
+Allow AI to automatically generate:
+
+Product descriptions
+SEO titles
+Social captions
+Hashtags
+StatusSeller Links
+When a merchant selects a product, generate a unique smart shopping link.
+
+Example:
+
+statusseller.app/p/ABX92K
+
+Each link should contain:
+
+Product
+Seller
+Store
+Analytics
+AI knowledge
+Checkout
+Provide:
+
+Copy Link
+
+Share Link
+
+QR Code
+
+Download QR
+
+Enable Shopping Screen
+This is the most important screen.
+
+Display a large preview of the product.
+
+Under it show:
+
+Shopping Link
+
+Button Style
+
+The merchant can choose:
+
+🛒 Shop Now
+
+⚡ Buy Now
+
+👀 View Product
+
+💬 Ask AI
+
+🛍 Add to Cart
+
+Allow them to customize:
+
+Button color
+
+Button icon
+
+Button text
+
+Corner radius
+
+Animation
+
+AI Sales Agent
+Every merchant automatically gets an AI sales assistant.
+
+The merchant uploads:
+
+Store policies
+
+Delivery information
+
+Return policy
+
+FAQs
+
+Business information
+
+Product catalogue
+
+The AI can answer:
+
+Is this available?
+
+Do you deliver?
+
+What sizes?
+
+Warranty?
+
+Can I pay later?
+
+Recommend products
+
+Upsell
+
+Cross sell
+
+Track order
+
+The AI should support text, voice, and image questions.
+
+Customer Experience
+When customers open a StatusSeller link they should not see a boring webpage.
+
+Instead, create a beautiful bottom-sheet shopping interface.
+
+Display:
+
+Product Images
+
+Price
+
+Rating
+
+Description
+
+Variants
+
+Quantity
+
+Wishlist
+
+Share
+
+Add to Cart
+
+Buy Now
+
+Ask AI
+
+The interface should feel native and load instantly.
+
+Universal Cart
+Customers can add products from multiple links into one cart.
+
+Support:
+
+Quantity
+
+Coupons
+
+Discounts
+
+Recommendations
+
+Saved items
+
+Checkout
+
+Checkout
+Support:
+
+M-Pesa
+
+Visa
+
+Mastercard
+
+Apple Pay
+
+Google Pay
+
+PayPal
+
+Cash on Delivery
+
+Collect:
+
+Name
+
+Phone
+
+Address
+
+Delivery Notes
+
+After payment:
+
+Generate invoice
+
+Receipt
+
+Tracking number
+
+Confirmation page
+
+Orders
+Merchants can:
+
+View Orders
+
+Accept Orders
+
+Reject Orders
+
+Ship Orders
+
+Track Orders
+
+Refund Orders
+
+Message Customers
+
+Generate Delivery Labels
+
+Analytics
+Track:
+
+Status Views
+
+Link Clicks
+
+Overlay Opens
+
+AI Conversations
+
+Add to Cart Rate
+
+Checkout Rate
+
+Conversion Rate
+
+Revenue
+
+Top Products
+
+Top Customers
+
+Countries
+
+Cities
+
+Traffic Sources
+
+Display interactive charts.
+
+Notifications
+Push notifications for:
+
+New Order
+
+Payment Received
+
+Low Stock
+
+Customer Message
+
+Abandoned Cart
+
+New Review
+
+AI Features
+Include:
+
+AI Caption Generator
+
+AI Product Description Generator
+
+AI Price Suggestions
+
+AI Reply Assistant
+
+AI Customer Support
+
+AI Image Background Removal
+
+AI Translation
+
+AI Voice Agent
+
+Integrations
+Connect with:
+
+WhatsApp Business
+
+Instagram
+
+Facebook
+
+TikTok
+
+Telegram
+
+Shopify
+
+WooCommerce
+
+Stripe
+
+Paystack
+
+M-Pesa
+
+Google Analytics
+
+Meta Pixel
+
+Merchant Profile
+Store Logo
+
+Store Name
+
+About
+
+Phone
+
+Email
+
+Location
+
+Business Hours
+
+Delivery Radius
+
+Social Media Links
+
+Verification Badge
+
+Reviews
+
+Admin Panel
+Create an admin dashboard with:
+
+Merchant Management
+
+Customer Management
+
+Products
+
+Orders
+
+Payments
+
+AI Usage
+
+Analytics
+
+Support Tickets
+
+Subscriptions
+
+Content Moderation
+
+Tech Stack
+Use:
+
+React Native with Expo for iOS and Android.
+Supabase for Authentication, PostgreSQL database, Storage, and Edge Functions.
+TypeScript throughout.
+Zustand for state management.
+React Navigation.
+React Query (TanStack Query) for server state.
+Tailwind CSS (NativeWind) for styling.
+Stripe SDK and M-Pesa integration.
+OpenAI or compatible LLM API for the AI assistant.
+Firebase Cloud Messaging for push notifications.
+Recharts or Victory Native for analytics.
+Build the backend with Supabase and Edge Functions, exposing secure REST APIs.
+
+The app should follow a clean architecture with reusable components, scalable folder structure, dark mode support, offline caching where possible, and smooth 60fps animations. Prioritize a premium user experience that feels like a world-class startup product similar to Shopify, Stripe, Linear, and Apple.
+
+The code should be production-ready, modular, well-documented, and easy to extend with future features such as live shopping, affiliate marketing, influencer storefronts, and AI-powered recommendations.
