@@ -3,5 +3,5 @@ import { useApp } from '@/context/AppContext';
 
 export default function Index() {
   const { isLoggedIn } = useApp();
-  return <Redirect href={isLoggedIn ? '/(tabs)' : '/(auth)/login'} />;
+  return <Redirect href={isLoggedIn ? '/(tabs)' : '/(auth)/onboarding'} />;
 }

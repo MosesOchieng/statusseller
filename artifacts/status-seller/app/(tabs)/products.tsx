@@ -1,7 +1,7 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import {
-  FlatList,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -9,179 +9,177 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useColors } from '@/hooks/useColors';
 import { useApp } from '@/context/AppContext';
-import ProductCard from '@/components/ui/ProductCard';
-import EmptyState from '@/components/ui/EmptyState';
-import ProductOverlay from '@/components/ui/ProductOverlay';
-import type { Product, ProductStatus } from '@/types';
+import { formatCurrency } from '@/utils/formatters';
 
-type FilterTab = 'all' | ProductStatus;
+const TABS = ['All', 'Active', 'Inactive', 'Drafts'] as const;
+type TabType = (typeof TABS)[number];
 
-const FILTERS: { key: FilterTab; label: string }[] = [
-  { key: 'all', label: 'All' },
-  { key: 'active', label: 'Active' },
-  { key: 'draft', label: 'Draft' },
-  { key: 'out_of_stock', label: 'Out of Stock' },
-];
+const STATUS_BADGE: Record<string, { bg: string; text: string }> = {
+  active:       { bg: '#DCFCE7', text: '#15803D' },
+  draft:        { bg: '#F3F4F6', text: '#6B7280' },
+  out_of_stock: { bg: '#FEE2E2', text: '#B91C1C' },
+};
+
+function ProductInitials({ title, colorHex }: { title: string; colorHex?: string }) {
+  const c = colorHex ?? '#25D366';
+  return (
+    <View style={[styles.productThumb, { backgroundColor: c + '22' }]}>
+      <Text style={[styles.productInitials, { color: c }]}>
+        {title.slice(0, 2).toUpperCase()}
+      </Text>
+    </View>
+  );
+}
 
 export default function ProductsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { products } = useApp();
-  const [filter, setFilter] = useState<FilterTab>('all');
+  const { products, deleteProduct } = useApp();
+  const [activeTab, setActiveTab] = useState<TabType>('All');
   const [search, setSearch] = useState('');
-  const [overlayProduct, setOverlayProduct] = useState<Product | null>(null);
+  const topInset = Platform.OS === 'web' ? 0 : insets.top;
 
-  const topInset = Platform.OS === 'web' ? 67 : insets.top;
-
-  const filtered = useMemo(() => {
-    let list = products;
-    if (filter !== 'all') list = list.filter((p) => p.status === filter);
-    if (search.trim()) {
-      const q = search.toLowerCase();
-      list = list.filter(
-        (p) => p.title.toLowerCase().includes(q) || p.category.toLowerCase().includes(q)
-      );
-    }
-    return list;
-  }, [products, filter, search]);
-
-  const counts: Record<FilterTab, number> = {
-    all: products.length,
-    active: products.filter((p) => p.status === 'active').length,
-    draft: products.filter((p) => p.status === 'draft').length,
-    out_of_stock: products.filter((p) => p.status === 'out_of_stock').length,
-  };
+  const filtered = products.filter((p) => {
+    if (search && !p.title.toLowerCase().includes(search.toLowerCase())) return false;
+    if (activeTab === 'Active') return p.status === 'active';
+    if (activeTab === 'Inactive') return p.status === 'out_of_stock';
+    if (activeTab === 'Drafts') return p.status === 'draft';
+    return true;
+  });
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       {/* Header */}
-      <View
-        style={[
-          styles.header,
-          { paddingTop: topInset + 12, borderBottomColor: colors.border, backgroundColor: colors.background },
-        ]}
-      >
-        <View>
-          <Text style={[styles.title, { color: colors.foreground, fontFamily: 'Inter_700Bold' }]}>
-            Products
-          </Text>
-          <Text style={[styles.subtitle, { color: colors.mutedForeground, fontFamily: 'Inter_400Regular' }]}>
-            {products.length} item{products.length !== 1 ? 's' : ''} in your store
-          </Text>
+      <View style={[styles.header, { paddingTop: topInset + 16, borderBottomColor: colors.border }]}>
+        <Text style={[styles.headerTitle, { color: colors.foreground, fontFamily: 'Inter_700Bold' }]}>
+          Products
+        </Text>
+        <View style={styles.headerActions}>
+          <TouchableOpacity style={[styles.iconBtn, { borderColor: colors.border }]}>
+            <Feather name="filter" size={18} color={colors.foreground} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.push('/product/new')}
+            style={[styles.addBtn, { backgroundColor: colors.primary }]}
+          >
+            <Feather name="plus" size={18} color="#fff" />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          onPress={() => router.push('/product/new')}
-          style={[styles.addBtn, { backgroundColor: colors.primary, borderRadius: 22 }]}
-        >
-          <Ionicons name="add" size={22} color="#fff" />
-        </TouchableOpacity>
       </View>
 
       {/* Search */}
-      <View style={[styles.searchRow, { paddingHorizontal: 16, paddingVertical: 10 }]}>
-        <View
-          style={[
-            styles.searchBox,
-            { backgroundColor: colors.muted, borderRadius: 12, borderColor: colors.border },
-          ]}
-        >
-          <Ionicons name="search-outline" size={18} color={colors.mutedForeground} />
-          <TextInput
-            style={[styles.searchInput, { color: colors.foreground, fontFamily: 'Inter_400Regular' }]}
-            placeholder="Search products…"
-            placeholderTextColor={colors.mutedForeground}
-            value={search}
-            onChangeText={setSearch}
-          />
-          {search.length > 0 && (
-            <TouchableOpacity onPress={() => setSearch('')}>
-              <Ionicons name="close-circle" size={18} color={colors.mutedForeground} />
-            </TouchableOpacity>
-          )}
-        </View>
+      <View style={[styles.searchWrap, { backgroundColor: colors.muted, marginHorizontal: 16 }]}>
+        <Feather name="search" size={16} color={colors.mutedForeground} />
+        <TextInput
+          style={[styles.searchInput, { color: colors.foreground, fontFamily: 'Inter_400Regular' }]}
+          placeholder="Search products..."
+          placeholderTextColor={colors.mutedForeground}
+          value={search}
+          onChangeText={setSearch}
+        />
+        {search.length > 0 && (
+          <TouchableOpacity onPress={() => setSearch('')}>
+            <Feather name="x" size={16} color={colors.mutedForeground} />
+          </TouchableOpacity>
+        )}
       </View>
 
-      {/* Filter chips */}
-      <FlatList
-        data={FILTERS}
+      {/* Tabs */}
+      <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        keyExtractor={(i) => i.key}
-        contentContainerStyle={styles.filters}
-        renderItem={({ item }) => {
-          const active = filter === item.key;
-          return (
-            <TouchableOpacity
-              onPress={() => setFilter(item.key)}
+        contentContainerStyle={styles.tabsScroll}
+      >
+        {TABS.map((t) => (
+          <TouchableOpacity
+            key={t}
+            onPress={() => setActiveTab(t)}
+            style={[
+              styles.tab,
+              activeTab === t
+                ? { backgroundColor: colors.primary }
+                : { backgroundColor: colors.muted },
+            ]}
+          >
+            <Text
               style={[
-                styles.filterChip,
-                { backgroundColor: active ? colors.primary : colors.muted, borderRadius: 99 },
+                styles.tabText,
+                { fontFamily: 'Inter_500Medium' },
+                activeTab === t ? { color: '#fff' } : { color: colors.mutedForeground },
               ]}
             >
-              <Text
-                style={[
-                  styles.filterText,
-                  {
-                    color: active ? '#fff' : colors.mutedForeground,
-                    fontFamily: active ? 'Inter_600SemiBold' : 'Inter_400Regular',
-                  },
-                ]}
-              >
-                {item.label} ({counts[item.key]})
-              </Text>
-            </TouchableOpacity>
-          );
-        }}
-      />
+              {t}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
 
-      {/* Products list */}
-      <FlatList
-        data={filtered}
-        keyExtractor={(p) => p.id}
-        contentContainerStyle={[
-          styles.list,
-          { paddingBottom: Platform.OS === 'web' ? 84 + 20 : 110 },
-        ]}
-        renderItem={({ item }) => (
-          <View style={styles.productRow}>
-            <View style={{ flex: 1 }}>
-              <ProductCard
-                product={item}
-                onPress={() => router.push(`/product/${item.id}` as any)}
-              />
-            </View>
-            {/* Preview overlay button */}
+      {/* List */}
+      <ScrollView
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {filtered.length === 0 ? (
+          <View style={[styles.empty, { backgroundColor: colors.muted, borderRadius: 16 }]}>
+            <Feather name="package" size={32} color={colors.mutedForeground} />
+            <Text style={[styles.emptyText, { color: colors.mutedForeground, fontFamily: 'Inter_400Regular' }]}>
+              No products found
+            </Text>
             <TouchableOpacity
-              onPress={() => setOverlayProduct(item)}
-              style={[styles.previewBtn, { backgroundColor: colors.primaryLight, borderRadius: 10 }]}
+              onPress={() => router.push('/product/new')}
+              style={[styles.emptyBtn, { backgroundColor: colors.primary }]}
             >
-              <Ionicons name="eye-outline" size={18} color={colors.primary} />
+              <Text style={[styles.emptyBtnText, { fontFamily: 'Inter_600SemiBold' }]}>Add Product</Text>
             </TouchableOpacity>
           </View>
+        ) : (
+          filtered.map((p) => {
+            const badge = STATUS_BADGE[p.status] ?? STATUS_BADGE.draft;
+            return (
+              <TouchableOpacity
+                key={p.id}
+                onPress={() => router.push(`/product/${p.id}` as any)}
+                style={[styles.productRow, { backgroundColor: colors.card, borderColor: colors.border }]}
+              >
+                <ProductInitials title={p.title} colorHex={p.colorHex} />
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={[styles.productName, { color: colors.foreground, fontFamily: 'Inter_600SemiBold' }]}
+                    numberOfLines={1}
+                  >
+                    {p.title}
+                  </Text>
+                  <Text style={[styles.productCategory, { color: colors.mutedForeground, fontFamily: 'Inter_400Regular' }]}>
+                    {p.category}
+                  </Text>
+                  <View style={styles.productMeta}>
+                    <Text style={[styles.productPrice, { color: colors.primary, fontFamily: 'Inter_700Bold' }]}>
+                      {formatCurrency(p.price, p.currency)}
+                    </Text>
+                    <Text style={[styles.productStock, { color: colors.mutedForeground, fontFamily: 'Inter_400Regular' }]}>
+                      · {p.stock} in stock
+                    </Text>
+                  </View>
+                </View>
+                <View style={{ alignItems: 'flex-end', gap: 6 }}>
+                  <View style={[styles.badge, { backgroundColor: badge.bg }]}>
+                    <Text style={[styles.badgeText, { color: badge.text, fontFamily: 'Inter_600SemiBold' }]}>
+                      {p.status === 'out_of_stock' ? 'Out of Stock' : p.status.charAt(0).toUpperCase() + p.status.slice(1)}
+                    </Text>
+                  </View>
+                  <TouchableOpacity>
+                    <Feather name="more-vertical" size={18} color={colors.mutedForeground} />
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+            );
+          })
         )}
-        ListEmptyComponent={
-          <EmptyState
-            icon="cube-outline"
-            title={search ? 'No products found' : 'No products yet'}
-            subtitle={search ? 'Try a different search term' : 'Add your first product to start selling'}
-            actionLabel={search ? undefined : 'Add Product'}
-            onAction={search ? undefined : () => router.push('/product/new')}
-          />
-        }
-        scrollEnabled
-        showsVerticalScrollIndicator={false}
-      />
-
-      {/* Product preview overlay */}
-      <ProductOverlay
-        product={overlayProduct}
-        visible={overlayProduct !== null}
-        onClose={() => setOverlayProduct(null)}
-      />
+      </ScrollView>
     </View>
   );
 }
@@ -193,26 +191,66 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingBottom: 12,
+    paddingBottom: 14,
     borderBottomWidth: 1,
   },
-  title: { fontSize: 24 },
-  subtitle: { fontSize: 13, marginTop: 1 },
-  addBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  searchRow: {},
-  searchBox: {
+  headerTitle: { fontSize: 22 },
+  headerActions: { flexDirection: 'row', gap: 8 },
+  iconBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  searchWrap: {
     flexDirection: 'row',
     alignItems: 'center',
+    borderRadius: 12,
     paddingHorizontal: 12,
     paddingVertical: 10,
-    borderWidth: 1,
     gap: 8,
+    marginTop: 12,
+    marginBottom: 4,
   },
-  searchInput: { flex: 1, fontSize: 15 },
-  filters: { paddingHorizontal: 16, paddingBottom: 10, gap: 8 },
-  filterChip: { paddingHorizontal: 14, paddingVertical: 7 },
-  filterText: { fontSize: 13 },
-  list: { paddingHorizontal: 16, paddingTop: 4 },
-  productRow: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 2 },
-  previewBtn: { padding: 10, alignSelf: 'center' },
+  searchInput: { flex: 1, fontSize: 14 },
+  tabsScroll: { paddingHorizontal: 16, paddingVertical: 12, gap: 8 },
+  tab: { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 20 },
+  tabText: { fontSize: 13 },
+  productRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 14,
+    borderWidth: 1,
+    padding: 12,
+    marginBottom: 8,
+    gap: 12,
+  },
+  productThumb: {
+    width: 52,
+    height: 52,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  productInitials: { fontSize: 16, fontWeight: '700' },
+  productName: { fontSize: 14 },
+  productCategory: { fontSize: 12, marginTop: 2 },
+  productMeta: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
+  productPrice: { fontSize: 13 },
+  productStock: { fontSize: 12 },
+  badge: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 20 },
+  badgeText: { fontSize: 10 },
+  empty: { padding: 40, alignItems: 'center', gap: 12, marginTop: 20 },
+  emptyText: { fontSize: 15 },
+  emptyBtn: { paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20, marginTop: 4 },
+  emptyBtnText: { color: '#fff', fontSize: 14 },
 });

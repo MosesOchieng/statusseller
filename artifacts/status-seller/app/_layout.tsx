@@ -22,31 +22,21 @@ const queryClient = new QueryClient();
 function RootLayoutNav() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen
-        name="product/new"
-        options={{
-          headerShown: false,
-          presentation: 'modal',
-        }}
-      />
-      <Stack.Screen
-        name="order/[id]"
-        options={{ headerShown: false }}
-      />
-      <Stack.Screen
-        name="link/index"
-        options={{
-          headerShown: false,
-          presentation: 'modal',
-        }}
-      />
-      <Stack.Screen
-        name="analytics/index"
-        options={{ headerShown: false }}
-      />
+      <Stack.Screen name="index" />
+      <Stack.Screen name="(auth)" />
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="product/new" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="product/[id]" />
+      <Stack.Screen name="order/[id]" />
+      <Stack.Screen name="link/index" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="analytics/index" />
+      <Stack.Screen name="ai-chat" />
+      <Stack.Screen name="ai-coach" />
+      <Stack.Screen name="campaign/create" options={{ presentation: 'modal' }} />
+      <Stack.Screen name="campaign/preview" />
+      <Stack.Screen name="campaign/publish" />
+      <Stack.Screen name="campaign/whatsapp" />
+      <Stack.Screen name="shop/[code]" options={{ presentation: 'modal' }} />
     </Stack>
   );
 }

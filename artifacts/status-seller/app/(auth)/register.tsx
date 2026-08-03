@@ -16,38 +16,40 @@ import { useApp } from '@/context/AppContext';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 
-export default function LoginScreen() {
+export default function RegisterScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { login } = useApp();
+  const { register } = useApp();
   const topInset = Platform.OS === 'web' ? 0 : insets.top;
 
-  const [emailOrPhone, setEmailOrPhone] = useState('');
+  const [businessName, setBusinessName] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
 
-  const handleLogin = async () => {
-    if (!emailOrPhone || !password) {
-      setError('Please fill in all fields');
+  const handleRegister = async () => {
+    if (!businessName || !email || !password) {
+      setError('Please fill in all required fields');
+      return;
+    }
+    if (!agreedToTerms) {
+      setError('Please agree to the Terms & Privacy Policy');
       return;
     }
     setError('');
     setLoading(true);
     try {
-      await login(emailOrPhone, password);
+      await register(businessName, email, password);
+      router.replace('/(auth)/verify-phone');
     } catch {
-      setError('Invalid credentials. Please try again.');
+      setError('Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleDemoLogin = async () => {
-    setLoading(true);
-    await login('urbanwear@gmail.com', 'demo1234');
-    setLoading(false);
   };
 
   return (
@@ -60,65 +62,84 @@ export default function LoginScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Back */}
-        <TouchableOpacity onPress={() => router.push('/(auth)/onboarding')} style={styles.backBtn}>
+        {/* Header */}
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
           <Feather name="arrow-left" size={22} color={colors.foreground} />
         </TouchableOpacity>
 
-        {/* Greeting */}
         <Text style={[styles.title, { color: colors.foreground, fontFamily: 'Inter_700Bold' }]}>
-          Welcome Back 👋
+          Create Your Business Account
         </Text>
         <Text style={[styles.subtitle, { color: colors.mutedForeground, fontFamily: 'Inter_400Regular' }]}>
-          Login to your StatusSeller account.
+          Join thousands of businesses growing with StatusSeller.
         </Text>
 
         {/* Form */}
         <View style={styles.form}>
           <Input
-            label="Email or Phone"
+            label="Business Name"
+            placeholder="e.g. Urban Wear"
+            value={businessName}
+            onChangeText={setBusinessName}
+            leftIcon="briefcase-outline"
+            autoCapitalize="words"
+          />
+          <Input
+            label="Full Name"
+            placeholder="e.g. John Otieno"
+            value={fullName}
+            onChangeText={setFullName}
+            leftIcon="person-outline"
+            autoCapitalize="words"
+          />
+          <Input
+            label="Email Address"
             placeholder="john@urbanwear.com"
-            value={emailOrPhone}
-            onChangeText={setEmailOrPhone}
+            value={email}
+            onChangeText={setEmail}
             leftIcon="mail-outline"
-            autoCapitalize="none"
             keyboardType="email-address"
+            autoCapitalize="none"
+          />
+          <Input
+            label="Phone Number"
+            placeholder="+254 712 345 678"
+            value={phone}
+            onChangeText={setPhone}
+            leftIcon="call-outline"
+            keyboardType="phone-pad"
           />
           <Input
             label="Password"
-            placeholder="••••••••"
+            placeholder="Create a strong password"
             value={password}
             onChangeText={setPassword}
             leftIcon="lock-closed-outline"
             isPassword
           />
 
-          {/* Remember me + Forgot */}
-          <View style={styles.rememberRow}>
-            <TouchableOpacity
-              onPress={() => setRememberMe(!rememberMe)}
-              style={styles.rememberLeft}
+          {/* Terms */}
+          <TouchableOpacity
+            onPress={() => setAgreedToTerms(!agreedToTerms)}
+            style={styles.termsRow}
+          >
+            <View
+              style={[
+                styles.checkbox,
+                agreedToTerms
+                  ? { backgroundColor: colors.primary, borderColor: colors.primary }
+                  : { backgroundColor: 'transparent', borderColor: colors.border },
+              ]}
             >
-              <View
-                style={[
-                  styles.checkbox,
-                  rememberMe
-                    ? { backgroundColor: colors.primary, borderColor: colors.primary }
-                    : { backgroundColor: 'transparent', borderColor: colors.border },
-                ]}
-              >
-                {rememberMe && <Feather name="check" size={12} color="#fff" />}
-              </View>
-              <Text style={[styles.rememberText, { color: colors.mutedForeground, fontFamily: 'Inter_400Regular' }]}>
-                Remember me
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity>
-              <Text style={[styles.forgotText, { color: colors.primary, fontFamily: 'Inter_500Medium' }]}>
-                Forgot password?
-              </Text>
-            </TouchableOpacity>
-          </View>
+              {agreedToTerms && <Feather name="check" size={12} color="#fff" />}
+            </View>
+            <Text style={[styles.termsText, { color: colors.mutedForeground, fontFamily: 'Inter_400Regular' }]}>
+              I agree to the{' '}
+              <Text style={{ color: colors.primary, fontFamily: 'Inter_500Medium' }}>Terms</Text>
+              {' '}&{' '}
+              <Text style={{ color: colors.primary, fontFamily: 'Inter_500Medium' }}>Privacy Policy</Text>
+            </Text>
+          </TouchableOpacity>
 
           {error ? (
             <View style={[styles.errorBox, { backgroundColor: colors.destructive + '12', borderRadius: 10 }]}>
@@ -130,32 +151,23 @@ export default function LoginScreen() {
           ) : null}
 
           <Button
-            title="Login"
-            onPress={handleLogin}
+            title="Create Account"
+            onPress={handleRegister}
             loading={loading}
             fullWidth
             size="lg"
           />
 
-          {/* Demo */}
-          <TouchableOpacity
-            onPress={handleDemoLogin}
-            style={[styles.demoBtn, { borderColor: colors.primary + '40', backgroundColor: colors.primary + '08' }]}
-          >
-            <Feather name="zap" size={16} color={colors.primary} />
-            <Text style={[styles.demoBtnText, { color: colors.primary, fontFamily: 'Inter_600SemiBold' }]}>
-              {'  '}Try Demo Store
-            </Text>
-          </TouchableOpacity>
-
           {/* Divider */}
           <View style={styles.dividerRow}>
             <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
-            <Text style={[styles.dividerText, { color: colors.mutedForeground, fontFamily: 'Inter_400Regular' }]}>or</Text>
+            <Text style={[styles.dividerText, { color: colors.mutedForeground, fontFamily: 'Inter_400Regular' }]}>
+              or
+            </Text>
             <View style={[styles.dividerLine, { backgroundColor: colors.border }]} />
           </View>
 
-          {/* Social */}
+          {/* Social buttons */}
           <TouchableOpacity style={[styles.socialBtn, { borderColor: colors.border, backgroundColor: colors.card }]}>
             <Feather name="globe" size={18} color="#4285F4" />
             <Text style={[styles.socialText, { color: colors.foreground, fontFamily: 'Inter_500Medium' }]}>
@@ -171,13 +183,10 @@ export default function LoginScreen() {
             </TouchableOpacity>
           )}
 
-          <TouchableOpacity
-            onPress={() => router.push('/(auth)/register')}
-            style={styles.signupRow}
-          >
-            <Text style={[styles.signupText, { color: colors.mutedForeground, fontFamily: 'Inter_400Regular' }]}>
-              Don't have an account?{' '}
-              <Text style={{ color: colors.primary, fontFamily: 'Inter_600SemiBold' }}>Sign up</Text>
+          <TouchableOpacity onPress={() => router.push('/(auth)/login')} style={styles.signinRow}>
+            <Text style={[styles.signinText, { color: colors.mutedForeground, fontFamily: 'Inter_400Regular' }]}>
+              Already have an account?{' '}
+              <Text style={{ color: colors.primary, fontFamily: 'Inter_600SemiBold' }}>Sign In</Text>
             </Text>
           </TouchableOpacity>
         </View>
@@ -190,33 +199,22 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   scroll: { paddingHorizontal: 20 },
   backBtn: { marginBottom: 20, alignSelf: 'flex-start', padding: 4 },
-  title: { fontSize: 28, marginBottom: 6 },
-  subtitle: { fontSize: 14, marginBottom: 28 },
+  title: { fontSize: 26, marginBottom: 8 },
+  subtitle: { fontSize: 14, marginBottom: 28, lineHeight: 20 },
   form: { gap: 4 },
-  rememberRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginVertical: 4 },
-  rememberLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  termsRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 8 },
   checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 5,
+    width: 22,
+    height: 22,
+    borderRadius: 6,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
+    flexShrink: 0,
   },
-  rememberText: { fontSize: 13 },
-  forgotText: { fontSize: 13 },
+  termsText: { fontSize: 13, flex: 1 },
   errorBox: { flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 10, marginBottom: 4 },
   errorText: { fontSize: 13 },
-  demoBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 13,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    marginTop: 8,
-  },
-  demoBtnText: { fontSize: 15 },
   dividerRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 12 },
   dividerLine: { flex: 1, height: 1 },
   dividerText: { marginHorizontal: 12, fontSize: 13 },
@@ -231,6 +229,6 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   socialText: { fontSize: 15 },
-  signupRow: { alignItems: 'center', marginTop: 4 },
-  signupText: { fontSize: 14 },
+  signinRow: { alignItems: 'center', marginTop: 8 },
+  signinText: { fontSize: 14 },
 });
