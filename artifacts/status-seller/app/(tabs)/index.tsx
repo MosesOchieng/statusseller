@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { getImageSource } from '@/utils/imageSource';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -169,7 +170,7 @@ export default function HomeScreen() {
             const item = order.items[0];
             // Find product image
             const prod = products.find((p) => p.id === item?.productId);
-            const imgUrl = prod?.images?.[0];
+            const imgUrl = prod?.images?.[0] ?? null;
             return (
               <TouchableOpacity
                 key={order.id}
@@ -178,7 +179,7 @@ export default function HomeScreen() {
               >
                 {imgUrl ? (
                   <Image
-                    source={{ uri: imgUrl }}
+                    source={getImageSource(imgUrl)}
                     style={[styles.orderAvatar, { borderRadius: 10 }]}
                     resizeMode="cover"
                   />
@@ -233,7 +234,7 @@ export default function HomeScreen() {
               style={[styles.productCard, { backgroundColor: colors.card, borderColor: colors.border }]}
             >
               {p.images?.[0] ? (
-                <Image source={{ uri: p.images[0] }} style={styles.productThumb} resizeMode="cover" />
+                <Image source={getImageSource(p.images[0])} style={styles.productThumb} resizeMode="cover" />
               ) : (
                 <View style={[styles.productThumb, { backgroundColor: (p.colorHex ?? '#25D366') + '22', alignItems: 'center', justifyContent: 'center' }]}>
                   <Feather name="package" size={22} color={p.colorHex ?? '#25D366'} />

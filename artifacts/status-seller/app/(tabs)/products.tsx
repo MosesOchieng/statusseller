@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Image,
   Platform,
   ScrollView,
   StyleSheet,
@@ -8,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { getImageSource } from '@/utils/imageSource';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -24,8 +26,17 @@ const STATUS_BADGE: Record<string, { bg: string; text: string }> = {
   out_of_stock: { bg: '#FEE2E2', text: '#B91C1C' },
 };
 
-function ProductInitials({ title, colorHex }: { title: string; colorHex?: string }) {
+function ProductThumb({ images, title, colorHex }: { images: Array<string | number | object>; title: string; colorHex?: string }) {
   const c = colorHex ?? '#25D366';
+  if (images?.[0]) {
+    return (
+      <Image
+        source={getImageSource(images[0])}
+        style={styles.productThumb}
+        resizeMode="cover"
+      />
+    );
+  }
   return (
     <View style={[styles.productThumb, { backgroundColor: c + '22' }]}>
       <Text style={[styles.productInitials, { color: c }]}>
@@ -145,7 +156,7 @@ export default function ProductsScreen() {
                 onPress={() => router.push(`/product/${p.id}` as any)}
                 style={[styles.productRow, { backgroundColor: colors.card, borderColor: colors.border }]}
               >
-                <ProductInitials title={p.title} colorHex={p.colorHex} />
+                <ProductThumb images={p.images} title={p.title} colorHex={p.colorHex} />
                 <View style={{ flex: 1 }}>
                   <Text
                     style={[styles.productName, { color: colors.foreground, fontFamily: 'Inter_600SemiBold' }]}

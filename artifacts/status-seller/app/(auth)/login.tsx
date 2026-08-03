@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -8,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SOCIAL_LOGOS } from '@/constants/localImages';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -37,6 +39,7 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       await login(emailOrPhone, password);
+      router.replace('/(tabs)');
     } catch {
       setError('Invalid credentials. Please try again.');
     } finally {
@@ -46,8 +49,12 @@ export default function LoginScreen() {
 
   const handleDemoLogin = async () => {
     setLoading(true);
-    await login('urbanwear@gmail.com', 'demo1234');
-    setLoading(false);
+    try {
+      await login('urbanwear@gmail.com', 'demo1234');
+      router.replace('/(tabs)');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -156,10 +163,13 @@ export default function LoginScreen() {
           </View>
 
           {/* Social */}
-          <TouchableOpacity style={[styles.socialBtn, { borderColor: colors.border, backgroundColor: colors.card }]}>
-            <Feather name="globe" size={18} color="#4285F4" />
+          <TouchableOpacity
+            onPress={handleDemoLogin}
+            style={[styles.socialBtn, { borderColor: colors.border, backgroundColor: colors.card }]}
+          >
+            <Image source={SOCIAL_LOGOS.whatsapp} style={{ width: 22, height: 22, borderRadius: 4 }} resizeMode="contain" />
             <Text style={[styles.socialText, { color: colors.foreground, fontFamily: 'Inter_500Medium' }]}>
-              Continue with Google
+              Continue with WhatsApp
             </Text>
           </TouchableOpacity>
           {Platform.OS === 'ios' && (

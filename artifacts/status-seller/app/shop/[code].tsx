@@ -23,6 +23,7 @@ import { useColors } from '@/hooks/useColors';
 import { useApp } from '@/context/AppContext';
 import { LinearGradient } from 'expo-linear-gradient';
 import { formatCurrency } from '@/utils/formatters';
+import { getImageSource } from '@/utils/imageSource';
 
 type TabType = 'product' | 'cart' | 'chat' | 'checkout' | 'confirmed';
 
@@ -240,7 +241,7 @@ export default function ShopScreen() {
       {/* Product image */}
       {product.images?.[0] ? (
         <Image
-          source={{ uri: product.images[0] }}
+          source={getImageSource(product.images[0])}
           style={styles.productImage}
           resizeMode="cover"
         />
@@ -418,7 +419,7 @@ export default function ShopScreen() {
         return (
         <View key={i} style={[styles.cartItem, { backgroundColor: colors.card, borderColor: colors.border }]}>
           {cartImg ? (
-            <Image source={{ uri: cartImg }} style={[styles.cartThumb, { borderRadius: 12 }]} resizeMode="cover" />
+            <Image source={getImageSource(cartImg)} style={[styles.cartThumb, { borderRadius: 12 }]} resizeMode="cover" />
           ) : (
           <View style={[styles.cartThumb, { backgroundColor: (item.colorHex ?? '#25D366') + '22' }]}>
             <Text style={[styles.cartThumbText, { color: item.colorHex ?? '#25D366', fontFamily: 'Inter_700Bold' }]}>

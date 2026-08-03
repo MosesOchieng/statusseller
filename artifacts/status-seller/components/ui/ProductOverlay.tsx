@@ -18,7 +18,9 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { getImageSource } from '@/utils/imageSource';
 import * as Haptics from 'expo-haptics';
+import { router } from 'expo-router';
 import { useColors } from '@/hooks/useColors';
 import type { Product } from '@/types';
 import { formatCurrency } from '@/utils/formatters';
@@ -88,6 +90,12 @@ export default function ProductOverlay({ product, visible, onClose }: Props) {
     if (Platform.OS !== 'web') {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     }
+    onClose();
+    // Extract the link code from shopLink (e.g. "statusseller.app/p/ABC123" → "ABC123")
+    const code = product?.shopLink?.split('/').pop() ?? '';
+    if (code) {
+      router.push(`/shop/${code}` as any);
+    }
   };
 
   const handleShare = async () => {
@@ -147,7 +155,7 @@ export default function ProductOverlay({ product, visible, onClose }: Props) {
         {/* Product image */}
         {product.images?.[0] ? (
           <View style={styles.imageArea}>
-            <Image source={{ uri: product.images[0] }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+            <Image source={getImageSource(product.images[0])} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
             {hasDiscount && (
               <View style={[styles.discountBadge, { backgroundColor: colors.destructive }]}>
                 <Text style={[styles.discountText, { fontFamily: 'Inter_700Bold' }]}>

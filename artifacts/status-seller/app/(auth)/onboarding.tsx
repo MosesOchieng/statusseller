@@ -14,6 +14,7 @@ import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useColors } from '@/hooks/useColors';
 import { LinearGradient } from 'expo-linear-gradient';
+import { PRODUCT_IMAGES } from '@/constants/localImages';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -46,7 +47,7 @@ function Slide1() {
         {/* Product status image area */}
         <View style={s1.statusCard}>
           <Image
-            source={{ uri: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=400&q=80' }}
+            source={PRODUCT_IMAGES.boatShoes}
             style={s1.productImg}
             resizeMode="cover"
           />
@@ -130,7 +131,7 @@ function Slide2() {
       {/* Center product image */}
       <View style={s2.productWrap}>
         <Image
-          source={{ uri: 'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?w=400&q=80' }}
+          source={PRODUCT_IMAGES.blackDress}
           style={s2.productImg}
           resizeMode="cover"
         />

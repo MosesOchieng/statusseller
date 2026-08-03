@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Image,
   Platform,
   ScrollView,
   StyleSheet,
@@ -7,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { getImageSource } from '@/utils/imageSource';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useColors } from '@/hooks/useColors';
@@ -83,7 +85,13 @@ export default function AnalyticsScreen() {
         <Text style={[styles.headerTitle, { color: colors.foreground, fontFamily: 'Inter_700Bold' }]}>
           Analytics
         </Text>
-        <TouchableOpacity style={[styles.periodBtn, { borderColor: colors.border, backgroundColor: colors.card }]}>
+        <TouchableOpacity
+          onPress={() => {
+            const idx = PERIODS.indexOf(period);
+            setPeriod(PERIODS[(idx + 1) % PERIODS.length]);
+          }}
+          style={[styles.periodBtn, { borderColor: colors.border, backgroundColor: colors.card }]}
+        >
           <Text style={[styles.periodText, { color: colors.foreground, fontFamily: 'Inter_500Medium' }]}>
             {period}
           </Text>
@@ -195,11 +203,15 @@ export default function AnalyticsScreen() {
                 {i + 1}
               </Text>
             </View>
-            <View style={[styles.prodThumb, { backgroundColor: (p.colorHex ?? '#25D366') + '22' }]}>
-              <Text style={[styles.prodInitials, { color: p.colorHex ?? '#25D366', fontFamily: 'Inter_700Bold' }]}>
-                {p.title.slice(0, 2).toUpperCase()}
-              </Text>
-            </View>
+            {p.images?.[0] ? (
+              <Image source={getImageSource(p.images[0])} style={styles.prodThumb} resizeMode="cover" />
+            ) : (
+              <View style={[styles.prodThumb, { backgroundColor: (p.colorHex ?? '#25D366') + '22', alignItems: 'center', justifyContent: 'center' }]}>
+                <Text style={[styles.prodInitials, { color: p.colorHex ?? '#25D366', fontFamily: 'Inter_700Bold' }]}>
+                  {p.title.slice(0, 2).toUpperCase()}
+                </Text>
+              </View>
+            )}
             <View style={{ flex: 1 }}>
               <Text style={[styles.prodName, { color: colors.foreground, fontFamily: 'Inter_600SemiBold' }]} numberOfLines={1}>
                 {p.title}

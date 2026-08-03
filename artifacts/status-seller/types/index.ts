@@ -38,7 +38,7 @@ export interface Product {
   price: number;
   originalPrice?: number;
   currency: string;
-  images: string[];
+  images: Array<string | number | object>; // string = remote URI, number/object = local require()
   category: string;
   stock: number;
   sku: string;

@@ -92,6 +92,9 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <Feather name="bar-chart-2" size={22} color={color} />,
         }}
       />
+      {/* Hidden from tab bar — accessible as stack screens only */}
+      <Tabs.Screen name="ai" options={{ href: null }} />
+      <Tabs.Screen name="profile" options={{ href: null }} />
     </Tabs>
   );
 }
