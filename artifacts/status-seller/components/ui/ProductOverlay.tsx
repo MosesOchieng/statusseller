@@ -6,6 +6,7 @@ import React, { useEffect, useRef } from 'react';
 import {
   Animated,
   Dimensions,
+  Image,
   Modal,
   Platform,
   Share,
@@ -144,21 +145,34 @@ export default function ProductOverlay({ product, visible, onClose }: Props) {
         </View>
 
         {/* Product image */}
-        <LinearGradient
-          colors={gradientColors}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.imageArea}
-        >
-          <Ionicons name="image-outline" size={52} color="rgba(255,255,255,0.4)" />
-          {hasDiscount && (
-            <View style={[styles.discountBadge, { backgroundColor: colors.destructive }]}>
-              <Text style={[styles.discountText, { fontFamily: 'Inter_700Bold' }]}>
-                -{discountPct}%
-              </Text>
-            </View>
-          )}
-        </LinearGradient>
+        {product.images?.[0] ? (
+          <View style={styles.imageArea}>
+            <Image source={{ uri: product.images[0] }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+            {hasDiscount && (
+              <View style={[styles.discountBadge, { backgroundColor: colors.destructive }]}>
+                <Text style={[styles.discountText, { fontFamily: 'Inter_700Bold' }]}>
+                  -{discountPct}%
+                </Text>
+              </View>
+            )}
+          </View>
+        ) : (
+          <LinearGradient
+            colors={gradientColors}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.imageArea}
+          >
+            <Ionicons name="image-outline" size={52} color="rgba(255,255,255,0.4)" />
+            {hasDiscount && (
+              <View style={[styles.discountBadge, { backgroundColor: colors.destructive }]}>
+                <Text style={[styles.discountText, { fontFamily: 'Inter_700Bold' }]}>
+                  -{discountPct}%
+                </Text>
+              </View>
+            )}
+          </LinearGradient>
+        )}
 
         {/* Content */}
         <View style={styles.content}>

@@ -11,6 +11,23 @@ env = { "CI" = "true" }
 [workflows]
 runButton = "Project"
 
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "artifacts/status-seller: expo"
+
+[[workflows.workflow]]
+name = "artifacts/status-seller: expo"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "PORT=20683 pnpm --filter @workspace/status-seller run dev"
+
 [agent]
 stack = "PNPM_WORKSPACE"
 expertMode = true

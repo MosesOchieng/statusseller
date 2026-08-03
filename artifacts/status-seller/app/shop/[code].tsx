@@ -6,6 +6,7 @@ import React, { useRef, useState } from 'react';
 import {
   Alert,
   FlatList,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -237,18 +238,24 @@ export default function ShopScreen() {
   const renderProductTab = () => (
     <ScrollView contentContainerStyle={{ paddingBottom: 120 }} showsVerticalScrollIndicator={false}>
       {/* Product image */}
-      <LinearGradient
-        colors={[product.colorHex ? product.colorHex + 'DD' : '#E5E5E5', product.colorHex ? product.colorHex + '66' : '#F0F0F0']}
-        style={styles.productImage}
-      >
-        {product.images?.[0] ? null : (
+      {product.images?.[0] ? (
+        <Image
+          source={{ uri: product.images[0] }}
+          style={styles.productImage}
+          resizeMode="cover"
+        />
+      ) : (
+        <LinearGradient
+          colors={[product.colorHex ? product.colorHex + 'DD' : '#E5E5E5', product.colorHex ? product.colorHex + '66' : '#F0F0F0']}
+          style={styles.productImage}
+        >
           <View style={styles.productImageInner}>
             <Text style={[styles.productImageText, { color: '#fff', fontFamily: 'Inter_700Bold' }]}>
               {product.title.toUpperCase()}
             </Text>
           </View>
-        )}
-      </LinearGradient>
+        </LinearGradient>
+      )}
 
       <View style={styles.productDetails}>
         {/* Store + rating */}
@@ -405,13 +412,20 @@ export default function ShopScreen() {
         </Text>
       </View>
 
-      {cartItems.map((item, i) => (
+      {cartItems.map((item, i) => {
+        const cartProd = products.find((p) => p.id === item.productId);
+        const cartImg = cartProd?.images?.[0];
+        return (
         <View key={i} style={[styles.cartItem, { backgroundColor: colors.card, borderColor: colors.border }]}>
+          {cartImg ? (
+            <Image source={{ uri: cartImg }} style={[styles.cartThumb, { borderRadius: 12 }]} resizeMode="cover" />
+          ) : (
           <View style={[styles.cartThumb, { backgroundColor: (item.colorHex ?? '#25D366') + '22' }]}>
             <Text style={[styles.cartThumbText, { color: item.colorHex ?? '#25D366', fontFamily: 'Inter_700Bold' }]}>
               {item.title.slice(0, 2).toUpperCase()}
             </Text>
           </View>
+          )}
           <View style={{ flex: 1 }}>
             <Text style={[styles.cartItemTitle, { color: colors.foreground, fontFamily: 'Inter_600SemiBold' }]}>
               {item.title}
@@ -424,7 +438,8 @@ export default function ShopScreen() {
             {formatCurrency(item.price, item.currency)}
           </Text>
         </View>
-      ))}
+        );
+      })}
 
       {/* Totals */}
       <View style={[styles.totalsCard, { backgroundColor: colors.card, borderColor: colors.border }]}>
