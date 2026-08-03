@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import {
+  Image,
   Platform,
   ScrollView,
   StyleSheet,
@@ -7,6 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { getImageSource } from '@/utils/imageSource';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -96,11 +98,19 @@ export default function CampaignPreviewScreen() {
               <View style={[styles.productBadge, { backgroundColor: '#25D366' }]}>
                 <Text style={[styles.productBadgeText, { fontFamily: 'Inter_600SemiBold' }]}>NEW ARRIVAL</Text>
               </View>
-              <View style={[styles.productImagePlaceholder, { backgroundColor: '#2A2A3E' }]}>
-                <Text style={[styles.productImageText, { color: '#fff', fontFamily: 'Inter_700Bold' }]}>
-                  {product?.title?.toUpperCase() ?? 'NIKE\nAIR FORCE 1'}
-                </Text>
-              </View>
+              {product?.images?.[0] ? (
+                <Image
+                  source={getImageSource(product.images[0])}
+                  style={styles.productImagePlaceholder}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View style={[styles.productImagePlaceholder, { backgroundColor: '#2A2A3E', alignItems: 'center', justifyContent: 'center' }]}>
+                  <Text style={[styles.productImageText, { color: '#fff', fontFamily: 'Inter_700Bold' }]}>
+                    {product?.title?.toUpperCase() ?? 'NIKE\nAIR FORCE 1'}
+                  </Text>
+                </View>
+              )}
               <View style={styles.productInfoRow}>
                 <View style={[styles.storePill, { backgroundColor: '#25D366' }]}>
                   <Text style={[styles.storePillText, { fontFamily: 'Inter_600SemiBold' }]}>Urban Wear</Text>

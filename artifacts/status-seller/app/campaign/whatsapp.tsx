@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Image,
   Platform,
   ScrollView,
   StyleSheet,
@@ -8,6 +9,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { getImageSource } from '@/utils/imageSource';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -62,11 +64,19 @@ export default function WhatsAppPostScreen() {
 
           {/* Product card */}
           <View style={[styles.waProductCard, { backgroundColor: '#1F2937' }]}>
-            <View style={[styles.waProductImage, { backgroundColor: '#374151' }]}>
-              <Text style={[styles.waProductTitle, { color: '#fff', fontFamily: 'Inter_700Bold' }]}>
-                {product?.title?.toUpperCase() ?? 'NIKE\nAIR FORCE 1'}
-              </Text>
-            </View>
+            {product?.images?.[0] ? (
+              <Image
+                source={getImageSource(product.images[0])}
+                style={styles.waProductImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={[styles.waProductImage, { backgroundColor: '#374151', alignItems: 'center', justifyContent: 'center' }]}>
+                <Text style={[styles.waProductTitle, { color: '#fff', fontFamily: 'Inter_700Bold' }]}>
+                  {product?.title?.toUpperCase() ?? 'NIKE\nAIR FORCE 1'}
+                </Text>
+              </View>
+            )}
             <View style={styles.waProductInfo}>
               <Text style={[styles.waProductPrice, { color: '#25D366', fontFamily: 'Inter_700Bold' }]}>
                 KSh {product?.price?.toLocaleString() ?? '6,000'}
@@ -148,7 +158,7 @@ const styles = StyleSheet.create({
   waStatusName: { paddingHorizontal: 16, marginBottom: 12 },
   waName: { fontSize: 16 },
   waProductCard: { margin: 12, borderRadius: 16, overflow: 'hidden' },
-  waProductImage: { height: 180, alignItems: 'center', justifyContent: 'center', padding: 16 },
+  waProductImage: { height: 180, width: '100%', alignItems: 'center', justifyContent: 'center' },
   waProductTitle: { fontSize: 20, textAlign: 'center', lineHeight: 28 },
   waProductInfo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 14 },
   waProductPrice: { fontSize: 20 },
