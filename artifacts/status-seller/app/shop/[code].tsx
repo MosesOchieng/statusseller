@@ -78,6 +78,7 @@ export default function ShopScreen() {
   const [offerPrice, setOfferPrice] = useState('');
   const [agreedPrice, setAgreedPrice] = useState(product?.price ?? 0);
   const [offerTimer, setOfferTimer] = useState(598); // 9:58
+  const [showOfferInput, setOfferInput] = useState(false);
 
   // Checkout fields
   const [name, setName] = useState('');
@@ -200,8 +201,6 @@ export default function ShopScreen() {
       setOfferState('seller_counter');
     }, 1000);
   };
-
-  const [showOfferInput, setOfferInput] = useState(false);
 
   const handleAcceptOffer = () => {
     const agrMsg: ChatMessage = {
@@ -933,7 +932,7 @@ const styles = StyleSheet.create({
   tabBarText: { fontSize: 13 },
   tabBadge: { position: 'absolute', top: 8, right: 20, width: 16, height: 16, borderRadius: 8, alignItems: 'center', justifyContent: 'center' },
   tabBadgeText: { fontSize: 9, color: '#fff', fontWeight: '700' },
-  productImage: { height: 240, justifyContent: 'flex-end' },
+  productImage: { height: 240, width: '100%', justifyContent: 'flex-end' },
   productImageInner: { alignItems: 'center', justifyContent: 'center', flex: 1, padding: 20 },
   productImageText: { fontSize: 20, textAlign: 'center', lineHeight: 28, opacity: 0.8 },
   productDetails: { padding: 16, gap: 4 },

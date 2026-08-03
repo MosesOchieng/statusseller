@@ -312,14 +312,27 @@ export default function ProductDetailScreen() {
               <Text style={[styles.linkUrl, { color: colors.primary, fontFamily: 'Inter_500Medium' }]}>
                 https://{product.shopLink}
               </Text>
-              <TouchableOpacity
-                onPress={() => router.push('/link')}
-                style={[styles.linkBtn, { backgroundColor: colors.primary, borderRadius: 8 }]}
-              >
-                <Text style={[styles.linkBtnText, { fontFamily: 'Inter_600SemiBold' }]}>
-                  Customize & Share
-                </Text>
-              </TouchableOpacity>
+              <View style={styles.linkActions}>
+                <TouchableOpacity
+                  onPress={() => {
+                    const code = product.shopLink?.split('/').pop() ?? '';
+                    if (code) router.push(`/shop/${code}` as any);
+                  }}
+                  style={[styles.linkBtn, { backgroundColor: colors.card, borderRadius: 8, borderWidth: 1, borderColor: colors.primary }]}
+                >
+                  <Text style={[styles.linkBtnText, { fontFamily: 'Inter_600SemiBold', color: colors.primary }]}>
+                    👁 Preview
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => router.push('/link')}
+                  style={[styles.linkBtn, { backgroundColor: colors.primary, borderRadius: 8, flex: 1 }]}
+                >
+                  <Text style={[styles.linkBtnText, { fontFamily: 'Inter_600SemiBold' }]}>
+                    Customize & Share
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* Variants */}
@@ -399,7 +412,8 @@ const styles = StyleSheet.create({
   linkTop: { flexDirection: 'row', alignItems: 'center' },
   linkLabel: { fontSize: 14 },
   linkUrl: { fontSize: 13 },
-  linkBtn: { paddingVertical: 10, alignItems: 'center' },
+  linkActions: { flexDirection: 'row', gap: 8 },
+  linkBtn: { paddingVertical: 10, alignItems: 'center', flex: 0 },
   linkBtnText: { fontSize: 14, color: '#fff' },
   variantsCard: { padding: 14, borderWidth: 1, gap: 10 },
   variantRow: { flexDirection: 'row', alignItems: 'flex-start', flexWrap: 'wrap' },

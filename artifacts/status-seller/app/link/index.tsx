@@ -175,7 +175,9 @@ export default function LinkScreen() {
                 KSh {selectedProduct.price.toLocaleString()}
               </Text>
               <TouchableOpacity
+                onPress={() => setOverlayVisible(true)}
                 style={[styles.previewBtn, { backgroundColor: buttonColor, borderRadius: 12 }]}
+                activeOpacity={0.85}
               >
                 <Ionicons name={(buttonStyleObj?.icon ?? 'cart-outline') as any} size={18} color="#fff" />
                 <Text style={[styles.previewBtnText, { fontFamily: 'Inter_600SemiBold' }]}>

@@ -520,8 +520,8 @@ const styles = StyleSheet.create({
   visualArea: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
+    justifyContent: 'flex-end',
+    paddingBottom: 8,
   },
   bottom: { paddingHorizontal: 20, gap: 16 },
   slideTitle: { fontSize: 26, color: '#fff', lineHeight: 34 },
