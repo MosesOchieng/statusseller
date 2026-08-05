@@ -21,6 +21,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useColors } from '@/hooks/useColors';
+import { apiFetch } from '@/lib/api';
 
 type Step = 'business_info' | 'upload_docs' | 'review' | 'pending' | 'verified' | 'setup';
 
@@ -42,6 +43,7 @@ export default function KYBScreen() {
   const topInset = Platform.OS === 'web' ? 0 : insets.top;
 
   const [step, setStep] = useState<Step>('business_info');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Business info
   const [bizType, setBizType] = useState<string>('Sole Proprietor');
@@ -280,13 +282,44 @@ export default function KYBScreen() {
       </View>
 
       <TouchableOpacity
-        onPress={() => {
+        disabled={isSubmitting}
+        onPress={async () => {
+          if (isSubmitting) return;
+          setIsSubmitting(true);
           if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-          setStep('pending');
+          try {
+            // Update the business profile with extra KYB metadata
+            await apiFetch('/business/me', {
+              method: 'PATCH',
+              body: JSON.stringify({
+                name: bizName,
+                location: address || null,
+                logoUrl: logoUri || null,
+              }),
+            });
+            // Submit KYB documents
+            await apiFetch('/business/kyb', {
+              method: 'POST',
+              body: JSON.stringify({
+                ownerFullName: bizName,
+                registrationNumber: regNumber || null,
+                nationalIdUrl: ownerIdUri || null,
+                businessCertUrl: bizRegUri || null,
+              }),
+            });
+            setStep('pending');
+          } catch (err) {
+            console.error('KYB submission failed:', err);
+            Alert.alert('Submission Failed', 'Could not submit your KYB application. Please try again.');
+          } finally {
+            setIsSubmitting(false);
+          }
         }}
-        style={[styles.nextBtn, { backgroundColor: colors.primary }]}
+        style={[styles.nextBtn, { backgroundColor: colors.primary, opacity: isSubmitting ? 0.7 : 1 }]}
       >
-        <Text style={[styles.nextBtnText, { fontFamily: 'Inter_700Bold' }]}>Submit for Verification</Text>
+        <Text style={[styles.nextBtnText, { fontFamily: 'Inter_700Bold' }]}>
+          {isSubmitting ? 'Submitting…' : 'Submit for Verification'}
+        </Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={() => setStep('upload_docs')} style={styles.backLink}>
         <Text style={[styles.backLinkText, { color: colors.mutedForeground, fontFamily: 'Inter_400Regular' }]}>← Back</Text>

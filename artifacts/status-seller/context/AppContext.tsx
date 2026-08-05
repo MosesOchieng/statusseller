@@ -1,17 +1,109 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { User, Store, Product, Order, Message, Notification } from '@/types';
-import {
-  MOCK_USER,
-  MOCK_STORE,
-  MOCK_PRODUCTS,
-  MOCK_ORDERS,
-  MOCK_NOTIFICATIONS,
-} from '@/constants/mockData';
-import { generateId, generateLinkCode } from '@/utils/formatters';
+import { generateId } from '@/utils/formatters';
+import { apiFetch, saveTokens, clearTokens } from '@/lib/api';
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL = 'llama-3.1-8b-instant';
+
+// ─── Type helpers for API responses ──────────────────────────────────────────
+interface AuthResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: {
+    id: string;
+    fullName: string;
+    email: string;
+    phone: string | null;
+    avatarUrl: string | null;
+  };
+  business: {
+    id: string;
+    name: string;
+    description: string | null;
+    logoUrl: string | null;
+    phone: string | null;
+    email: string | null;
+    location: string | null;
+    verified?: boolean;
+    kybStatus: string;
+    rating: string | null;
+    totalSales: number;
+    totalRevenue: string;
+    joinedDate?: string;
+    businessHours: string | null;
+    deliveryRadius: string | null;
+    whatsappLinked: boolean;
+    createdAt: string;
+  } | null;
+}
+
+function apiBusinessToStore(b: NonNullable<AuthResponse['business']>): Store {
+  return {
+    id: b.id,
+    name: b.name,
+    description: b.description ?? '',
+    logo: b.logoUrl ?? undefined,
+    phone: b.phone ?? '',
+    email: b.email ?? '',
+    location: b.location ?? 'Nairobi, Kenya',
+    verified: b.kybStatus === 'approved',
+    rating: parseFloat(b.rating ?? '0'),
+    totalSales: b.totalSales,
+    totalRevenue: parseFloat(b.totalRevenue),
+    joinedDate: b.createdAt,
+    businessHours: b.businessHours ?? 'Mon-Sat: 8AM - 8PM',
+    deliveryRadius: b.deliveryRadius ?? '50km from Nairobi CBD',
+    whatsappLinked: b.whatsappLinked,
+  };
+}
+
+function apiProductToProduct(p: Record<string, unknown>): Product {
+  return {
+    id: p['id'] as string,
+    title: p['title'] as string,
+    description: (p['description'] as string) ?? '',
+    price: parseFloat(p['price'] as string),
+    originalPrice: p['originalPrice'] ? parseFloat(p['originalPrice'] as string) : undefined,
+    currency: (p['currency'] as string) ?? 'KSh',
+    images: (p['images'] as string[]) ?? [],
+    category: (p['category'] as string) ?? '',
+    stock: (p['stock'] as number) ?? 0,
+    sku: (p['sku'] as string) ?? '',
+    variants: (p['variants'] as Product['variants']) ?? [],
+    status: (p['status'] as Product['status']) ?? 'draft',
+    shopLink: (p['shopLink'] as string) ?? '',
+    views: (p['views'] as number) ?? 0,
+    orders: (p['orders'] as number) ?? 0,
+    createdAt: p['createdAt'] as string,
+    colorHex: p['colorHex'] as string | undefined,
+  };
+}
+
+function apiOrderToOrder(o: Record<string, unknown>): Order {
+  return {
+    id: o['id'] as string,
+    orderNumber: o['orderNumber'] as string,
+    customer: {
+      name: o['customerName'] as string,
+      phone: (o['customerPhone'] as string) ?? '',
+      address: (o['customerAddress'] as string) ?? '',
+    },
+    items: (o['items'] as Order['items']) ?? [],
+    subtotal: parseFloat(o['subtotal'] as string),
+    deliveryFee: parseFloat((o['deliveryFee'] as string) ?? '0'),
+    total: parseFloat(o['total'] as string),
+    currency: (o['currency'] as string) ?? 'KSh',
+    status: o['status'] as Order['status'],
+    paymentMethod: (o['paymentMethod'] as string) ?? 'M-Pesa',
+    paymentStatus: o['paymentStatus'] as Order['paymentStatus'],
+    createdAt: o['createdAt'] as string,
+    updatedAt: o['updatedAt'] as string,
+    notes: o['notes'] as string | undefined,
+    trackingNumber: o['trackingNumber'] as string | undefined,
+  };
+}
 
 interface AppContextValue {
   // Auth
@@ -19,20 +111,21 @@ interface AppContextValue {
   user: User | null;
   store: Store | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string) => Promise<void>;
+  register: (name: string, email: string, password: string, businessName?: string) => Promise<void>;
   logout: () => void;
+  refreshData: () => Promise<void>;
   // Products
   products: Product[];
-  addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'views' | 'orders' | 'shopLink'>) => void;
-  updateProduct: (id: string, updates: Partial<Product>) => void;
-  deleteProduct: (id: string) => void;
+  addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'views' | 'orders' | 'shopLink'>) => Promise<void>;
+  updateProduct: (id: string, updates: Partial<Product>) => Promise<void>;
+  deleteProduct: (id: string) => Promise<void>;
   // Orders
   orders: Order[];
-  updateOrderStatus: (id: string, status: Order['status']) => void;
+  updateOrderStatus: (id: string, status: Order['status']) => Promise<void>;
   // Notifications
   notifications: Notification[];
   unreadCount: number;
-  markAllRead: () => void;
+  markAllRead: () => Promise<void>;
   // AI Chat
   messages: Message[];
   sendMessage: (content: string) => Promise<void>;
@@ -48,7 +141,7 @@ function buildSystemPrompt(store: Store | null, products: Product[]): string {
     .filter((p) => p.status !== 'draft')
     .map((p) => `- ${p.title}: KSh ${p.price.toLocaleString()}, ${p.stock} units in stock, ${p.status}`)
     .join('\n');
-  return `You are Seller AI, a friendly and knowledgeable sales assistant for ${store?.name ?? 'StatusSeller'}, a Kenyan online store. 
+  return `You are the Business Assistant for ${store?.name ?? 'StatusSeller'}, a Kenyan online store. 
 
 You help customers with product information, delivery, payments, returns, and order status.
 
@@ -64,10 +157,10 @@ ${productSummary || 'No products currently listed.'}
 Keep responses concise (2-4 sentences max), warm, and helpful. Use KSh for prices. If asked something you don't know, offer to connect the customer with the merchant.`;
 }
 
-function simulatedResponse(content: string, products: Product[]): string {
+function simulatedResponse(content: string, products: Product[], storeName: string): string {
   const lower = content.toLowerCase();
   if (lower.includes('size') || lower.includes('fit')) {
-    return 'Sizes are listed per product. Nike Air Force 1: 40–44. Samsung Watch 6: 40mm or 44mm. Please confirm your size before ordering!';
+    return 'Sizes are listed per product. Please confirm your size before ordering!';
   }
   if (lower.includes('deliver') || lower.includes('ship')) {
     return 'Nairobi delivery: 1–2 days (KSh 200–300). Upcountry: 2–3 days (KSh 300–500). Same-day express in Nairobi for KSh 500.';
@@ -82,15 +175,8 @@ function simulatedResponse(content: string, products: Product[]): string {
   if (lower.includes('return') || lower.includes('refund')) {
     return '7-day hassle-free returns on all items in original condition. Refunds processed within 3–5 business days to your original payment method.';
   }
-  if (lower.includes('original') || lower.includes('authentic') || lower.includes('warranty')) {
-    return 'All products are 100% authentic with official manufacturer warranties. Nike: 1 year, Samsung: 2 years. We provide receipts for all purchases.';
-  }
-  if (lower.includes('price') || lower.includes('cost') || lower.includes('ksh')) {
-    const priceList = products.filter((p) => p.status !== 'draft').map((p) => `${p.title}: KSh ${p.price.toLocaleString()}`).join(', ');
-    return `Current prices: ${priceList || 'Check individual products for pricing.'}`;
-  }
   if (lower.includes('hello') || lower.includes('hi') || lower.includes('hey')) {
-    return `Hello! 👋 Welcome to ${MOCK_STORE.name}. I can help with product info, delivery, payments, and more. What would you like to know?`;
+    return `Hello! 👋 Welcome to ${storeName}. I can help with product info, delivery, payments, and more. What would you like to know?`;
   }
   return 'I can help with product details, delivery times, payment options, stock levels, and return policies. What would you like to know?';
 }
@@ -99,181 +185,236 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [store, setStore] = useState<Store | null>(null);
-  const [products, setProducts] = useState<Product[]>(MOCK_PRODUCTS);
-  const [orders, setOrders] = useState<Order[]>(MOCK_ORDERS);
-  const [notifications, setNotifications] = useState<Notification[]>(MOCK_NOTIFICATIONS);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isAILoading, setIsAILoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'm0',
       role: 'assistant',
-      content: "Hi! I'm Seller AI — your always-on sales assistant. I can answer customer questions about your products, delivery, payments, and more. Try me! 🚀",
+      content: "Hi! I'm your Business Assistant — always on, answering customer questions about your products, delivery, and more. Try me! 🚀",
       timestamp: new Date().toISOString(),
     },
   ]);
 
-  // Check if Groq API key is configured
-  const groqKey = process.env.EXPO_PUBLIC_GROQ_API_KEY ?? '';
+  const groqKey = process.env['EXPO_PUBLIC_GROQ_API_KEY'] ?? '';
   const groqEnabled = groqKey.length > 0;
 
-  // Keep products ref current for use inside sendMessage closure
   const productsRef = useRef(products);
   productsRef.current = products;
   const storeRef = useRef(store);
   storeRef.current = store;
 
+  // ── Load live data ───────────────────────────────────────────────────────
+  const loadBusinessData = async () => {
+    try {
+      const [prods, ords, notifs] = await Promise.all([
+        apiFetch<Record<string, unknown>[]>('/products'),
+        apiFetch<Record<string, unknown>[]>('/orders'),
+        apiFetch<Record<string, unknown>[]>('/notifications'),
+      ]);
+      setProducts(prods.map(apiProductToProduct));
+      setOrders(ords.map(apiOrderToOrder));
+      setNotifications(
+        notifs.map((n) => ({
+          id: n['id'] as string,
+          type: n['type'] as Notification['type'],
+          title: n['title'] as string,
+          body: n['body'] as string,
+          read: n['read'] as boolean,
+          createdAt: n['createdAt'] as string,
+        })),
+      );
+    } catch {
+      // Data load failed — keep empty state, don't crash
+    }
+  };
+
+  const refreshData = async () => {
+    await loadBusinessData();
+  };
+
+  // ── Restore session on mount ─────────────────────────────────────────────
   useEffect(() => {
-    AsyncStorage.getItem('isLoggedIn').then((val) => {
-      if (val === 'true') {
+    AsyncStorage.getItem('ss_user').then(async (val) => {
+      if (!val) return;
+      try {
+        const { user: u, store: s } = JSON.parse(val) as { user: User; store: Store };
+        setUser(u);
+        setStore(s);
         setIsLoggedIn(true);
-        setUser(MOCK_USER);
-        setStore(MOCK_STORE);
-      }
+        await loadBusinessData();
+      } catch { /* corrupted storage — ignore */ }
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const login = async (email: string, _password: string) => {
-    await AsyncStorage.setItem('isLoggedIn', 'true');
+  // ── Auth ─────────────────────────────────────────────────────────────────
+  const login = async (emailOrPhone: string, password: string) => {
+    const data = await apiFetch<AuthResponse>('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ emailOrPhone, password }),
+    });
+
+    await saveTokens(data.accessToken, data.refreshToken);
+
+    const appUser: User = {
+      id: data.user.id,
+      name: data.user.fullName,
+      email: data.user.email,
+      phone: data.user.phone ?? '',
+      avatar: data.user.avatarUrl ?? undefined,
+    };
+    const appStore = data.business ? apiBusinessToStore(data.business) : null;
+
+    setUser(appUser);
+    setStore(appStore);
     setIsLoggedIn(true);
-    setUser({ ...MOCK_USER, email });
-    setStore(MOCK_STORE);
+
+    await AsyncStorage.setItem('ss_user', JSON.stringify({ user: appUser, store: appStore }));
+    await loadBusinessData();
   };
 
-  const register = async (name: string, email: string, _password: string) => {
-    const newUser: User = { id: generateId(), name, email, phone: '' };
-    const newStore: Store = {
-      ...MOCK_STORE,
-      id: generateId(),
-      name,
-      email,
-      totalSales: 0,
-      totalRevenue: 0,
-      verified: false,
-      joinedDate: new Date().toISOString(),
+  const register = async (name: string, email: string, password: string, businessName?: string) => {
+    const data = await apiFetch<AuthResponse>('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ fullName: name, email, password, businessName: businessName ?? name }),
+    });
+
+    await saveTokens(data.accessToken, data.refreshToken);
+
+    const appUser: User = {
+      id: data.user.id,
+      name: data.user.fullName,
+      email: data.user.email,
+      phone: data.user.phone ?? '',
+      avatar: data.user.avatarUrl ?? undefined,
     };
-    await AsyncStorage.setItem('isLoggedIn', 'true');
+    const appStore = data.business ? apiBusinessToStore(data.business) : null;
+
+    setUser(appUser);
+    setStore(appStore);
     setIsLoggedIn(true);
-    setUser(newUser);
-    setStore(newStore);
     setProducts([]);
     setOrders([]);
+
+    await AsyncStorage.setItem('ss_user', JSON.stringify({ user: appUser, store: appStore }));
   };
 
-  const logout = () => {
-    AsyncStorage.removeItem('isLoggedIn');
+  const logout = async () => {
+    try {
+      await apiFetch('/auth/logout', { method: 'POST' });
+    } catch { /* best effort */ }
+    await clearTokens();
+    await AsyncStorage.removeItem('ss_user');
     setIsLoggedIn(false);
     setUser(null);
     setStore(null);
+    setProducts([]);
+    setOrders([]);
+    setNotifications([]);
   };
 
-  const addProduct = (product: Omit<Product, 'id' | 'createdAt' | 'views' | 'orders' | 'shopLink'>) => {
-    const newProduct: Product = {
-      ...product,
-      id: generateId(),
-      createdAt: new Date().toISOString(),
-      views: 0,
-      orders: 0,
-      shopLink: `statusseller.app/p/${generateLinkCode()}`,
-    };
-    setProducts((prev) => [newProduct, ...prev]);
+  // ── Products ─────────────────────────────────────────────────────────────
+  const addProduct = async (product: Omit<Product, 'id' | 'createdAt' | 'views' | 'orders' | 'shopLink'>) => {
+    const created = await apiFetch<Record<string, unknown>>('/products', {
+      method: 'POST',
+      body: JSON.stringify({
+        ...product,
+        images: (product.images as string[]).filter((i) => typeof i === 'string'),
+      }),
+    });
+    setProducts((prev) => [apiProductToProduct(created), ...prev]);
   };
 
-  const updateProduct = (id: string, updates: Partial<Product>) => {
-    setProducts((prev) => prev.map((p) => (p.id === id ? { ...p, ...updates } : p)));
+  const updateProduct = async (id: string, updates: Partial<Product>) => {
+    const updated = await apiFetch<Record<string, unknown>>(`/products/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(updates),
+    });
+    setProducts((prev) => prev.map((p) => (p.id === id ? apiProductToProduct(updated) : p)));
   };
 
-  const deleteProduct = (id: string) => {
+  const deleteProduct = async (id: string) => {
+    await apiFetch(`/products/${id}`, { method: 'DELETE' });
     setProducts((prev) => prev.filter((p) => p.id !== id));
   };
 
-  const updateOrderStatus = (id: string, status: Order['status']) => {
-    setOrders((prev) =>
-      prev.map((o) => (o.id === id ? { ...o, status, updatedAt: new Date().toISOString() } : o))
-    );
+  // ── Orders ───────────────────────────────────────────────────────────────
+  const updateOrderStatus = async (id: string, status: Order['status']) => {
+    const updated = await apiFetch<Record<string, unknown>>(`/orders/${id}/status`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status }),
+    });
+    setOrders((prev) => prev.map((o) => (o.id === id ? apiOrderToOrder(updated) : o)));
   };
 
+  // ── Notifications ────────────────────────────────────────────────────────
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  const markAllRead = () => {
+  const markAllRead = async () => {
+    await apiFetch('/notifications/read-all', { method: 'PATCH' });
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
   };
 
-  const sendMessage = useCallback(async (content: string) => {
-    const userMsg: Message = {
-      id: generateId(),
-      role: 'user',
-      content,
-      timestamp: new Date().toISOString(),
-    };
-    setMessages((prev) => [...prev, userMsg]);
-    setIsAILoading(true);
-
-    try {
-      const key = process.env.EXPO_PUBLIC_GROQ_API_KEY ?? '';
-      if (key) {
-        // Real Groq API call
-        const systemPrompt = buildSystemPrompt(storeRef.current, productsRef.current);
-        const resp = await fetch(GROQ_API_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${key}`,
-          },
-          body: JSON.stringify({
-            model: GROQ_MODEL,
-            messages: [
-              { role: 'system', content: systemPrompt },
-              // Include last 10 messages for context
-              ...messages.slice(-10).map((m) => ({ role: m.role, content: m.content })),
-              { role: 'user', content },
-            ],
-            max_tokens: 300,
-            temperature: 0.7,
-          }),
-        });
-        if (!resp.ok) throw new Error(`Groq error: ${resp.status}`);
-        const data = await resp.json();
-        const aiContent: string = data.choices?.[0]?.message?.content ?? 'Sorry, I could not get a response right now.';
-        const aiMsg: Message = {
-          id: generateId(),
-          role: 'assistant',
-          content: aiContent,
-          timestamp: new Date().toISOString(),
-        };
-        setMessages((prev) => [...prev, aiMsg]);
-      } else {
-        // Simulated fallback with realistic delay
-        await new Promise<void>((resolve) => setTimeout(resolve, 900));
-        const aiMsg: Message = {
-          id: generateId(),
-          role: 'assistant',
-          content: simulatedResponse(content, productsRef.current),
-          timestamp: new Date().toISOString(),
-        };
-        setMessages((prev) => [...prev, aiMsg]);
-      }
-    } catch {
-      const errMsg: Message = {
+  // ── AI Chat ──────────────────────────────────────────────────────────────
+  const sendMessage = useCallback(
+    async (content: string) => {
+      const userMsg: Message = {
         id: generateId(),
-        role: 'assistant',
-        content: 'I had trouble connecting right now. Please try again in a moment.',
+        role: 'user',
+        content,
         timestamp: new Date().toISOString(),
       };
-      setMessages((prev) => [...prev, errMsg]);
-    } finally {
-      setIsAILoading(false);
-    }
-  }, [messages]);
+      setMessages((prev) => [...prev, userMsg]);
+      setIsAILoading(true);
+
+      try {
+        const key = process.env['EXPO_PUBLIC_GROQ_API_KEY'] ?? '';
+        if (key) {
+          const systemPrompt = buildSystemPrompt(storeRef.current, productsRef.current);
+          const resp = await fetch(GROQ_API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
+            body: JSON.stringify({
+              model: GROQ_MODEL,
+              messages: [
+                { role: 'system', content: systemPrompt },
+                ...messages.slice(-10).map((m) => ({ role: m.role, content: m.content })),
+                { role: 'user', content },
+              ],
+              max_tokens: 300,
+              temperature: 0.7,
+            }),
+          });
+          if (!resp.ok) throw new Error(`Groq error: ${resp.status}`);
+          const data = await resp.json();
+          const aiContent: string = data.choices?.[0]?.message?.content ?? 'Sorry, I could not get a response right now.';
+          setMessages((prev) => [...prev, { id: generateId(), role: 'assistant', content: aiContent, timestamp: new Date().toISOString() }]);
+        } else {
+          await new Promise<void>((resolve) => setTimeout(resolve, 900));
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: generateId(),
+              role: 'assistant',
+              content: simulatedResponse(content, productsRef.current, storeRef.current?.name ?? 'StatusSeller'),
+              timestamp: new Date().toISOString(),
+            },
+          ]);
+        }
+      } catch {
+        setMessages((prev) => [...prev, { id: generateId(), role: 'assistant', content: 'I had trouble connecting right now. Please try again in a moment.', timestamp: new Date().toISOString() }]);
+      } finally {
+        setIsAILoading(false);
+      }
+    },
+    [messages],
+  );
 
   const clearChat = () => {
-    setMessages([
-      {
-        id: generateId(),
-        role: 'assistant',
-        content: "Chat cleared! I'm ready to help. Ask me anything about your store. 🚀",
-        timestamp: new Date().toISOString(),
-      },
-    ]);
+    setMessages([{ id: generateId(), role: 'assistant', content: "Chat cleared! I'm ready to help. Ask me anything about your store. 🚀", timestamp: new Date().toISOString() }]);
   };
 
   return (
@@ -285,6 +426,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         login,
         register,
         logout,
+        refreshData,
         products,
         addProduct,
         updateProduct,

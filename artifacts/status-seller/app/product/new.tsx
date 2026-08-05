@@ -100,15 +100,15 @@ export default function NewProductScreen() {
     }, 1200);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!title || !price) {
       Alert.alert('Missing fields', 'Please fill in the product title and price.');
       return;
     }
     setLoading(true);
     if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    setTimeout(() => {
-      addProduct({
+    try {
+      await addProduct({
         title,
         description,
         price: Number(price),
@@ -122,9 +122,13 @@ export default function NewProductScreen() {
         status,
         colorHex: CATEGORY_COLORS[category] ?? '#888',
       });
-      setLoading(false);
       router.back();
-    }, 500);
+    } catch (err) {
+      console.error('Failed to save product:', err);
+      Alert.alert('Error', 'Could not save the product. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

@@ -1,0 +1,769 @@
+Yes. I would actually give Replit a much more technical prompt because what you've designed is primarily a **frontend**. Now Replit needs to build the **backend, business logic, APIs, and architecture** that power those screens.
+
+One important thing to tell Replit is **not to hardcode the UI**. It should preserve the existing frontend and build the backend services, state management, integrations, and APIs behind it.
+
+Here is the prompt I would use.
+
+---
+
+# StatusSeller Backend & System Architecture Prompt
+
+## Objective
+
+The frontend UI for StatusSeller is already designed. **Do not redesign or replace the existing frontend.**
+
+Your responsibility is to build the complete backend, business logic, APIs, database, authentication, integrations, and infrastructure that support the existing frontend while maintaining all current UI components and interactions.
+
+Every backend service must connect seamlessly to the existing React frontend.
+
+---
+
+# Tech Stack
+
+Use production-ready technologies:
+
+* Next.js API Routes (or NestJS if preferred)
+* TypeScript
+* PostgreSQL
+* Drizzle ORM
+* Supabase Authentication
+* Redis (queues and caching)
+* Cloudinary
+* OpenAI API
+* Firebase Cloud Messaging
+* Stripe
+* M-Pesa Daraja API
+* AWS S3 (optional)
+* WebSockets
+* Docker
+* Vercel Deployment
+
+Architecture must be modular and scalable.
+
+---
+
+# Authentication
+
+Implement:
+
+Merchant Registration
+
+Merchant Login
+
+Email Verification
+
+Phone OTP Verification
+
+Password Reset
+
+Google Login
+
+Apple Login
+
+Session Management
+
+JWT Authentication
+
+Refresh Tokens
+
+Role-Based Permissions
+
+---
+
+# Merchant Verification (KYB)
+
+Build a complete KYB workflow.
+
+Store:
+
+Business Name
+
+Registration Number
+
+Business Category
+
+Owner Information
+
+National ID
+
+Passport
+
+Business Certificate
+
+Business Logo
+
+Business Address
+
+Verification Status
+
+Verification History
+
+Admin Approval
+
+Rejected Reasons
+
+Merchant Dashboard should respond dynamically to verification status.
+
+Pending merchants should not be able to publish campaigns or receive payments.
+
+---
+
+# Business Profile API
+
+Create APIs for:
+
+Business Profile
+
+Logo
+
+Banner
+
+Brand Colors
+
+Business Description
+
+Social Links
+
+Business Assistant Configuration
+
+Shipping Settings
+
+Payment Settings
+
+Business Hours
+
+Policies
+
+---
+
+# Product APIs
+
+Support:
+
+Products
+
+Variants
+
+Inventory
+
+Collections
+
+Categories
+
+Tags
+
+Images
+
+Videos
+
+Pricing
+
+Discounts
+
+Coupons
+
+Bundles
+
+Reviews
+
+Search
+
+Pagination
+
+---
+
+# Campaign Engine
+
+Create backend services that generate campaigns.
+
+Each campaign stores:
+
+Campaign Name
+
+Goal
+
+Products
+
+Generated Assets
+
+Captions
+
+Platforms
+
+Publish Status
+
+Schedule
+
+Performance Metrics
+
+Campaign History
+
+---
+
+# AI Content Pipeline
+
+Create asynchronous jobs that generate:
+
+Captions
+
+Descriptions
+
+Hashtags
+
+Posters
+
+Stories
+
+Videos (placeholder architecture)
+
+Marketing Copy
+
+Store generated assets in Cloudinary.
+
+---
+
+# Social Publishing Layer
+
+Design the publishing system to support multiple platforms.
+
+Platform adapters:
+
+WhatsApp
+
+Instagram
+
+Facebook
+
+TikTok
+
+Telegram
+
+X
+
+Snapchat
+
+For platforms with publishing APIs:
+
+Publish automatically.
+
+For platforms that do not allow direct publishing (such as WhatsApp Status through public APIs):
+
+Prepare the content package (image/video, caption, metadata), then hand off to the official app using the platform's supported sharing mechanisms so the merchant can complete the post.
+
+The backend should record:
+
+Prepared
+
+Shared
+
+Completed
+
+Failed
+
+Retry
+
+This allows the frontend to show publishing progress consistently.
+
+---
+
+# Status Sharing Service
+
+The backend should support the frontend workflow where merchants tap **Publish** and choose WhatsApp Status.
+
+The service should:
+
+Generate optimized media
+
+Compress images
+
+Compress videos
+
+Generate captions
+
+Package media
+
+Trigger native share intents on mobile through the frontend
+
+Record analytics after sharing
+
+Never attempt unsupported automation of posting directly into another app.
+
+---
+
+# Interactive Shopping Overlay
+
+This is the most important backend component.
+
+The overlay should not be hardcoded.
+
+Instead build a dynamic Commerce Overlay Engine.
+
+Every generated campaign creates:
+
+Overlay ID
+
+Merchant ID
+
+Product IDs
+
+Theme
+
+Business Branding
+
+Buttons
+
+Popup Layout
+
+Business Assistant Configuration
+
+Checkout Configuration
+
+Analytics
+
+The overlay should be generated dynamically from backend configuration.
+
+---
+
+# Overlay Flow
+
+Customer opens a Status.
+
+↓
+
+Clicks Shop Now.
+
+↓
+
+Frontend requests Overlay.
+
+GET /overlay/{campaignId}
+
+↓
+
+Backend returns:
+
+Merchant
+
+Products
+
+Inventory
+
+Variants
+
+Pricing
+
+Discounts
+
+Business Assistant Settings
+
+Cart Configuration
+
+Checkout Settings
+
+Delivery Options
+
+Negotiation Rules
+
+Recommended Products
+
+Reviews
+
+Everything should be API-driven.
+
+---
+
+# Popup State Machine
+
+Support transitions:
+
+VIEW_STATUS
+
+↓
+
+OPEN_POPUP
+
+↓
+
+VIEW_PRODUCT
+
+↓
+
+ADD_TO_CART
+
+↓
+
+VIEW_CART
+
+↓
+
+CHAT
+
+↓
+
+NEGOTIATE
+
+↓
+
+CHECKOUT
+
+↓
+
+PAYMENT
+
+↓
+
+ORDER_CONFIRMED
+
+↓
+
+EMAIL_TRACKING
+
+Every state should be persisted.
+
+---
+
+# Business Assistant Backend
+
+Never expose "AI."
+
+Internally create:
+
+Business Assistant Service
+
+It should support:
+
+Conversation Memory
+
+FAQs
+
+Policies
+
+Product Knowledge
+
+Inventory Queries
+
+Delivery Questions
+
+Negotiation Rules
+
+Human Escalation
+
+Languages
+
+Conversation Logs
+
+Suggested Replies
+
+---
+
+# Negotiation Engine
+
+Backend Rules Engine.
+
+Merchant defines:
+
+Minimum Price
+
+Maximum Discount
+
+Bundle Rules
+
+Free Delivery Threshold
+
+Coupon Rules
+
+Negotiation Timeout
+
+Backend decides:
+
+Accept
+
+Reject
+
+Counter Offer
+
+Bundle Offer
+
+Coupon Offer
+
+Escalate
+
+Every negotiation is logged.
+
+---
+
+# Shopping Cart
+
+Persistent Cart.
+
+Support:
+
+Multiple Products
+
+Variants
+
+Coupons
+
+Taxes
+
+Shipping
+
+Gift Cards
+
+Inventory Locking
+
+Stock Validation
+
+Abandoned Cart Recovery
+
+---
+
+# Checkout
+
+Support:
+
+M-Pesa
+
+Stripe
+
+Cards
+
+Apple Pay
+
+Google Pay
+
+Order Validation
+
+Tax Calculation
+
+Shipping Cost
+
+Inventory Reservation
+
+Invoice Generation
+
+Order Confirmation
+
+---
+
+# Order Management
+
+Create services for:
+
+Pending
+
+Paid
+
+Packed
+
+Shipped
+
+Delivered
+
+Cancelled
+
+Refunded
+
+Tracking Numbers
+
+Shipping Provider
+
+Email Notifications
+
+---
+
+# Email System
+
+Automatically send:
+
+Order Confirmation
+
+Receipt
+
+Shipping Confirmation
+
+Tracking Link
+
+Delivery Confirmation
+
+Refund Notification
+
+No customer account required.
+
+Tracking happens through secure email links.
+
+---
+
+# Analytics Engine
+
+Collect:
+
+Views
+
+Popup Opens
+
+Add to Cart
+
+Chats Started
+
+Negotiations
+
+Purchases
+
+Revenue
+
+Conversion Rate
+
+Campaign Performance
+
+Average Negotiated Discount
+
+Cart Abandonment
+
+Store all analytics in real time.
+
+---
+
+# Notification Service
+
+Merchant receives:
+
+New Order
+
+Low Inventory
+
+Campaign Performance
+
+Payment Received
+
+Customer Escalation
+
+Business Verification
+
+---
+
+# Admin Panel Backend
+
+Manage:
+
+Businesses
+
+KYB
+
+Products
+
+Campaigns
+
+Orders
+
+Payments
+
+Analytics
+
+Subscriptions
+
+Support Tickets
+
+System Health
+
+---
+
+# Database
+
+Normalize database design.
+
+Create separate tables for:
+
+Users
+
+Businesses
+
+Business Profiles
+
+KYB
+
+Products
+
+Variants
+
+Campaigns
+
+Generated Assets
+
+Orders
+
+Order Items
+
+Customers (guest checkout)
+
+Negotiations
+
+Chats
+
+Analytics
+
+Overlay Sessions
+
+Payments
+
+Notifications
+
+Referrals
+
+Audit Logs
+
+Everything should use UUIDs.
+
+---
+
+# Performance
+
+Implement:
+
+Caching
+
+Background Queues
+
+Rate Limiting
+
+Image Optimization
+
+Database Indexing
+
+CDN-ready Assets
+
+Pagination
+
+Lazy Loading
+
+WebSocket Updates
+
+---
+
+# Security
+
+Encrypt sensitive data.
+
+Validate all inputs.
+
+Protect APIs.
+
+Implement RBAC.
+
+Use signed URLs.
+
+Secure file uploads.
+
+Prevent abuse.
+
+---
+
+# Final Requirement
+
+**Do not modify the existing frontend design.** The UI has already been completed and approved.
+
+Build all backend APIs, services, database models, integrations, and business logic so every screen in the frontend becomes fully functional.
+
+Ensure all frontend components consume live API data rather than mock data, and keep the architecture modular so additional social platforms and AI capabilities can be added in the future without changing the UI.
+
+One final recommendation: ask Replit to implement the backend in **phases** (authentication and KYB → products and campaigns → overlay engine → checkout and payments → analytics and notifications) so each layer is tested before the next is added. That will make the project far more reliable than attempting to generate the entire backend in one pass.

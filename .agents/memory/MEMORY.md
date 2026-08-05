@@ -1,0 +1,1 @@
+- [StatusSeller backend architecture](statusseller-backend.md) — JWT auth via SESSION_SECRET, Drizzle numeric fields return strings, api-server has no hot-reload.

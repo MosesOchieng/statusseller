@@ -60,10 +60,20 @@ export default function OrderDetailScreen() {
     delivered: 'Mark as Delivered',
   };
 
-  const handleNextStatus = () => {
-    if (!nextStatus) return;
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    updateOrderStatus(order.id, nextStatus);
+  const [statusLoading, setStatusLoading] = React.useState(false);
+
+  const handleNextStatus = async () => {
+    if (!nextStatus || statusLoading) return;
+    setStatusLoading(true);
+    if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    try {
+      await updateOrderStatus(order.id, nextStatus);
+    } catch (err) {
+      console.error('Failed to update order status:', err);
+      Alert.alert('Error', 'Could not update order status. Please try again.');
+    } finally {
+      setStatusLoading(false);
+    }
   };
 
   const handleCancel = () => {
@@ -72,10 +82,15 @@ export default function OrderDetailScreen() {
       {
         text: 'Cancel Order',
         style: 'destructive',
-        onPress: () => {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-          updateOrderStatus(order.id, 'cancelled');
-          router.back();
+        onPress: async () => {
+          if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+          try {
+            await updateOrderStatus(order.id, 'cancelled');
+            router.back();
+          } catch (err) {
+            console.error('Failed to cancel order:', err);
+            Alert.alert('Error', 'Could not cancel the order. Please try again.');
+          }
         },
       },
     ]);

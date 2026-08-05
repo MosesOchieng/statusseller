@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Platform,
   ScrollView,
   StyleSheet,
@@ -11,8 +12,21 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useColors } from '@/hooks/useColors';
-import { MOCK_STATS, MOCK_PRODUCTS } from '@/constants/mockData';
+import { useApp } from '@/context/AppContext';
+import { apiFetch } from '@/lib/api';
 import { formatCurrency } from '@/utils/formatters';
+
+interface StatsResponse {
+  todayRevenue: number;
+  weekRevenue: number[];
+  todayOrders: number;
+  totalProducts: number;
+  linkClicks: number;
+  conversionRate: number;
+  currency: string;
+  totalSales: number;
+  totalRevenue: number;
+}
 
 const WEEK_LABELS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Today'];
 
@@ -58,13 +72,44 @@ const barStyles = StyleSheet.create({
 export default function AnalyticsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const stats = MOCK_STATS;
+  const { products } = useApp();
   const topInset = Platform.OS === 'web' ? 67 : insets.top;
 
-  const topProducts = [...MOCK_PRODUCTS]
+  const [stats, setStats] = useState<StatsResponse | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  useEffect(() => {
+    apiFetch<StatsResponse>('/stats')
+      .then(setStats)
+      .catch((err) => console.error('Failed to load stats:', err))
+      .finally(() => setStatsLoading(false));
+  }, []);
+
+  const topProducts = [...products]
     .filter((p) => p.status === 'active')
     .sort((a, b) => b.orders - a.orders)
     .slice(0, 4);
+
+  const displayStats = stats ?? {
+    todayRevenue: 0,
+    weekRevenue: [0, 0, 0, 0, 0, 0, 0],
+    todayOrders: 0,
+    totalProducts: 0,
+    linkClicks: 0,
+    conversionRate: 0,
+    currency: 'KSh',
+    totalSales: 0,
+    totalRevenue: 0,
+  };
+
+  if (statsLoading) {
+    return (
+      <View style={[styles.container, { backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center' }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
+        <Text style={[{ color: colors.mutedForeground, marginTop: 12, fontFamily: 'Inter_400Regular' }]}>Loading analytics…</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -91,10 +136,10 @@ export default function AnalyticsScreen() {
         {/* Summary cards */}
         <View style={styles.summaryGrid}>
           {[
-            { label: 'Total Revenue', value: formatCurrency(stats.todayRevenue * 7, stats.currency), icon: 'cash-outline' as const, color: colors.primary },
-            { label: 'Total Orders', value: `${stats.todayOrders * 7}`, icon: 'bag-outline' as const, color: colors.accent },
-            { label: 'Link Clicks', value: `${stats.linkClicks * 7}`, icon: 'link-outline' as const, color: colors.warning },
-            { label: 'Conversion', value: `${stats.conversionRate}%`, icon: 'trending-up-outline' as const, color: colors.success },
+            { label: 'Total Revenue', value: formatCurrency(displayStats.totalRevenue || displayStats.todayRevenue, displayStats.currency), icon: 'cash-outline' as const, color: colors.primary },
+            { label: 'Total Orders', value: `${displayStats.totalSales || displayStats.todayOrders}`, icon: 'bag-outline' as const, color: colors.accent },
+            { label: 'Link Clicks', value: `${displayStats.linkClicks}`, icon: 'link-outline' as const, color: colors.warning },
+            { label: 'Conversion', value: `${displayStats.conversionRate}%`, icon: 'trending-up-outline' as const, color: colors.success },
           ].map((s) => (
             <View
               key={s.label}
@@ -128,10 +173,10 @@ export default function AnalyticsScreen() {
               Revenue This Week
             </Text>
             <Text style={[styles.chartTotal, { color: colors.primary, fontFamily: 'Inter_600SemiBold' }]}>
-              {formatCurrency(stats.weekRevenue.reduce((a, b) => a + b, 0), stats.currency)}
+              {formatCurrency(displayStats.weekRevenue.reduce((a, b) => a + b, 0), displayStats.currency)}
             </Text>
           </View>
-          <BarChart data={stats.weekRevenue} labels={WEEK_LABELS} color={colors.primary} />
+          <BarChart data={displayStats.weekRevenue} labels={WEEK_LABELS} color={colors.primary} />
         </View>
 
         {/* Link clicks chart */}
@@ -146,11 +191,11 @@ export default function AnalyticsScreen() {
               Link Clicks
             </Text>
             <Text style={[styles.chartTotal, { color: colors.accent, fontFamily: 'Inter_600SemiBold' }]}>
-              {stats.linkClicks * 7} total
+              {displayStats.linkClicks} total
             </Text>
           </View>
           <BarChart
-            data={[32, 54, 41, 78, 63, 58, 68].map((v) => Math.round(v * (stats.linkClicks / 68)))}
+            data={[32, 54, 41, 78, 63, 58, 68].map((v) => Math.round(v * (Math.max(displayStats.linkClicks, 1) / 68)))}
             labels={WEEK_LABELS}
             color={colors.accent}
           />
@@ -212,9 +257,9 @@ export default function AnalyticsScreen() {
           </Text>
           {[
             { label: 'Status Views', value: 3240, icon: 'eye-outline' as const, color: colors.info },
-            { label: 'Link Clicks', value: stats.linkClicks, icon: 'link-outline' as const, color: colors.accent },
+            { label: 'Link Clicks', value: displayStats.linkClicks, icon: 'link-outline' as const, color: colors.accent },
             { label: 'Product Views', value: 892, icon: 'bag-handle-outline' as const, color: colors.warning },
-            { label: 'Orders Placed', value: stats.todayOrders * 7, icon: 'checkmark-circle-outline' as const, color: colors.success },
+            { label: 'Orders Placed', value: displayStats.totalSales || displayStats.todayOrders, icon: 'checkmark-circle-outline' as const, color: colors.success },
           ].map((f, i, arr) => {
             const pct = i === 0 ? 100 : Math.round((f.value / arr[0].value) * 100);
             return (

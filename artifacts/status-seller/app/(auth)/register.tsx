@@ -43,7 +43,7 @@ export default function RegisterScreen() {
     setError('');
     setLoading(true);
     try {
-      await register(businessName, email, password);
+      await register(fullName, email, password, businessName);
       router.replace('/(auth)/verify-phone');
     } catch {
       setError('Registration failed. Please try again.');
