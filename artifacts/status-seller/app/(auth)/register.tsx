@@ -44,7 +44,7 @@ export default function RegisterScreen() {
     setLoading(true);
     try {
       await register(fullName, email, password, businessName);
-      router.replace('/(auth)/verify-phone');
+      router.replace('/(auth)/kyb');
     } catch {
       setError('Registration failed. Please try again.');
     } finally {

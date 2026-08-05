@@ -14,7 +14,6 @@ import { Feather } from '@expo/vector-icons';
 import { useColors } from '@/hooks/useColors';
 import { useApp } from '@/context/AppContext';
 import { formatCurrency } from '@/utils/formatters';
-import { MOCK_STATS } from '@/constants/mockData';
 
 const PERIODS = ['This Week', 'This Month', 'Last Month'] as const;
 
@@ -57,16 +56,15 @@ function LineChart({ data, color }: { data: number[]; color: string }) {
 export default function AnalyticsScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { products, orders } = useApp();
-  const stats = MOCK_STATS;
+  const { products, orders, stats } = useApp();
   const [period, setPeriod] = useState<(typeof PERIODS)[number]>('This Week');
   const topInset = Platform.OS === 'web' ? 0 : insets.top;
 
   const overviewCards = [
-    { label: 'Views', value: '12.4K', change: '+18.8%', up: true },
-    { label: 'Link Clicks', value: '842', change: '+23.1%', up: true },
-    { label: 'Orders', value: '34', change: '+10.3%', up: true },
-    { label: 'Conv. Rate', value: '2.74%', change: '+5.3%', up: true },
+    { label: 'Revenue', value: formatCurrency(stats.totalRevenue || stats.weekRevenue.reduce((a, b) => a + b, 0), stats.currency), change: '', up: true },
+    { label: 'Link Clicks', value: String(stats.linkClicks), change: '', up: true },
+    { label: 'Orders', value: String(stats.totalSales || orders.length), change: '', up: true },
+    { label: 'Conv. Rate', value: `${stats.conversionRate}%`, change: '', up: true },
   ];
 
   const topProducts = products

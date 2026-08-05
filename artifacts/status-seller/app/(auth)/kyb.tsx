@@ -217,7 +217,7 @@ export default function KYBScreen() {
       <View style={[styles.infoBox, { backgroundColor: colors.primary + '10', borderColor: colors.primary + '30' }]}>
         <Feather name="shield" size={16} color={colors.primary} />
         <Text style={[styles.infoBoxText, { color: colors.primary, fontFamily: 'Inter_400Regular' }]}>
-          {'  '}Your documents are encrypted and stored securely. We never share them with third parties.
+          {'  '}Documents are reviewed by our verification team and used only for KYB compliance. You can also email them to verify@statusseller.app.
         </Text>
       </View>
 
@@ -288,23 +288,24 @@ export default function KYBScreen() {
           setIsSubmitting(true);
           if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
           try {
-            // Update the business profile with extra KYB metadata
+            // Update business profile with available metadata
             await apiFetch('/business/me', {
               method: 'PATCH',
               body: JSON.stringify({
-                name: bizName,
-                location: address || null,
-                logoUrl: logoUri || null,
+                name: bizName || undefined,
+                location: address || undefined,
               }),
             });
-            // Submit KYB documents
+            // Submit KYB with form fields only — document files are
+            // not uploaded here; the verification team contacts the merchant
             await apiFetch('/business/kyb', {
               method: 'POST',
               body: JSON.stringify({
                 ownerFullName: bizName,
                 registrationNumber: regNumber || null,
-                nationalIdUrl: ownerIdUri || null,
-                businessCertUrl: bizRegUri || null,
+                // Document URLs are null until the merchant sends files via email
+                nationalIdUrl: null,
+                businessCertUrl: null,
               }),
             });
             setStep('pending');

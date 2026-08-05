@@ -15,7 +15,6 @@ import { router } from 'expo-router';
 import { useColors } from '@/hooks/useColors';
 import { useApp } from '@/context/AppContext';
 import { formatCurrency, formatRelativeTime } from '@/utils/formatters';
-import { MOCK_STATS } from '@/constants/mockData';
 import { LinearGradient } from 'expo-linear-gradient';
 
 const STATUS_COLOR: Record<string, { bg: string; text: string; label: string }> = {
@@ -53,15 +52,15 @@ function MiniSparkline({ data, color }: { data: number[]; color: string }) {
 export default function HomeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { store, orders, unreadCount, markAllRead, products } = useApp();
-  const stats = MOCK_STATS;
+  const { store, orders, unreadCount, markAllRead, products, stats } = useApp();
   const topInset = Platform.OS === 'web' ? 0 : insets.top;
   const recentOrders = orders.slice(0, 3);
 
+  const conversionRate = stats.conversionRate > 0 ? `${stats.conversionRate}%` : '—';
   const statCards = [
-    { label: 'Orders', value: '128', change: '+12%', up: true, icon: 'shopping-bag' as const },
-    { label: 'Visitors', value: '12.4K', change: '+18%', up: true, icon: 'eye' as const },
-    { label: 'Conversion', value: '2.74%', change: '+15%', up: true, icon: 'percent' as const },
+    { label: 'Orders', value: String(stats.totalSales || orders.length), change: '', up: true, icon: 'shopping-bag' as const },
+    { label: 'Products', value: String(stats.totalProducts || products.length), change: '', up: true, icon: 'eye' as const },
+    { label: 'Conversion', value: conversionRate, change: '', up: true, icon: 'percent' as const },
   ];
 
   return (
@@ -114,14 +113,14 @@ export default function HomeScreen() {
         <View style={{ flex: 1 }}>
           <Text style={[styles.heroLabel, { fontFamily: 'Inter_500Medium' }]}>Total Sales (This Week)</Text>
           <Text style={[styles.heroValue, { fontFamily: 'Inter_700Bold' }]}>
-            KSh 48,500
+            {stats.currency} {stats.weekRevenue.reduce((a, b) => a + b, 0).toLocaleString()}
           </Text>
           <View style={styles.heroTrendRow}>
             <Ionicons name="trending-up" size={14} color="rgba(255,255,255,0.9)" />
-            <Text style={[styles.heroTrend, { fontFamily: 'Inter_500Medium' }]}> +24.7% vs last 7 days</Text>
+            <Text style={[styles.heroTrend, { fontFamily: 'Inter_500Medium' }]}> {stats.totalSales || orders.length} orders this week</Text>
           </View>
         </View>
-        <MiniSparkline data={stats.weekRevenue} color="#25D366" />
+        <MiniSparkline data={stats.weekRevenue.length ? stats.weekRevenue : [0,0,0,0,0,0,0]} color="#25D366" />
       </LinearGradient>
 
       {/* Stats Row — Orders / Visitors / Conversion */}

@@ -105,6 +105,30 @@ function apiOrderToOrder(o: Record<string, unknown>): Order {
   };
 }
 
+export interface DashboardStats {
+  todayRevenue: number;
+  weekRevenue: number[];
+  todayOrders: number;
+  totalProducts: number;
+  linkClicks: number;
+  conversionRate: number;
+  currency: string;
+  totalSales: number;
+  totalRevenue: number;
+}
+
+const DEFAULT_STATS: DashboardStats = {
+  todayRevenue: 0,
+  weekRevenue: [0, 0, 0, 0, 0, 0, 0],
+  todayOrders: 0,
+  totalProducts: 0,
+  linkClicks: 0,
+  conversionRate: 0,
+  currency: 'KSh',
+  totalSales: 0,
+  totalRevenue: 0,
+};
+
 interface AppContextValue {
   // Auth
   isLoggedIn: boolean;
@@ -114,6 +138,8 @@ interface AppContextValue {
   register: (name: string, email: string, password: string, businessName?: string) => Promise<void>;
   logout: () => void;
   refreshData: () => Promise<void>;
+  // Stats
+  stats: DashboardStats;
   // Products
   products: Product[];
   addProduct: (product: Omit<Product, 'id' | 'createdAt' | 'views' | 'orders' | 'shopLink'>) => Promise<void>;
@@ -187,6 +213,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [store, setStore] = useState<Store | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [stats, setStats] = useState<DashboardStats>(DEFAULT_STATS);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isAILoading, setIsAILoading] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
@@ -209,10 +236,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // ── Load live data ───────────────────────────────────────────────────────
   const loadBusinessData = async () => {
     try {
-      const [prods, ords, notifs] = await Promise.all([
+      const [prods, ords, notifs, dashStats] = await Promise.all([
         apiFetch<Record<string, unknown>[]>('/products'),
         apiFetch<Record<string, unknown>[]>('/orders'),
         apiFetch<Record<string, unknown>[]>('/notifications'),
+        apiFetch<DashboardStats>('/stats').catch(() => DEFAULT_STATS),
       ]);
       setProducts(prods.map(apiProductToProduct));
       setOrders(ords.map(apiOrderToOrder));
@@ -226,6 +254,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
           createdAt: n['createdAt'] as string,
         })),
       );
+      setStats(dashStats);
     } catch {
       // Data load failed — keep empty state, don't crash
     }
@@ -427,6 +456,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         register,
         logout,
         refreshData,
+        stats,
         products,
         addProduct,
         updateProduct,

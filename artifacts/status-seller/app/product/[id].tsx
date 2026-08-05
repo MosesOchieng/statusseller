@@ -66,12 +66,12 @@ export default function ProductDetailScreen() {
 
   const statusLabel = { active: 'Active', draft: 'Draft', out_of_stock: 'Out of Stock' }[product.status];
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!title || !price) return;
     setSaving(true);
-    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    setTimeout(() => {
-      updateProduct(product.id, {
+    if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    try {
+      await updateProduct(product.id, {
         title,
         description,
         price: Number(price),
@@ -80,9 +80,13 @@ export default function ProductDetailScreen() {
         status,
         colorHex: CATEGORY_COLORS[category] ?? colors.muted,
       });
-      setSaving(false);
       setEditing(false);
-    }, 400);
+    } catch (err) {
+      console.error('Failed to save product:', err);
+      Alert.alert('Error', 'Could not save changes. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDelete = () => {
@@ -91,10 +95,15 @@ export default function ProductDetailScreen() {
       {
         text: 'Delete',
         style: 'destructive',
-        onPress: () => {
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-          deleteProduct(product.id);
-          router.back();
+        onPress: async () => {
+          if (Platform.OS !== 'web') Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+          try {
+            await deleteProduct(product.id);
+            router.back();
+          } catch (err) {
+            console.error('Failed to delete product:', err);
+            Alert.alert('Error', 'Could not delete the product. Please try again.');
+          }
         },
       },
     ]);
