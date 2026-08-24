@@ -6,6 +6,7 @@ import productsRouter from "./products";
 import ordersRouter from "./orders";
 import statsRouter from "./stats";
 import notificationsRouter from "./notifications";
+import publicRouter from "./public";
 
 const router: IRouter = Router();
 
@@ -16,5 +17,6 @@ router.use("/products", productsRouter);
 router.use("/orders", ordersRouter);
 router.use("/stats", statsRouter);
 router.use("/notifications", notificationsRouter);
+router.use("/public", publicRouter);
 
 export default router;
