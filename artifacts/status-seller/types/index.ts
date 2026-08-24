@@ -51,6 +51,16 @@ export interface Product {
   colorHex?: string; // placeholder color for image
 }
 
+export interface CampaignDraft {
+  imageUri?: string;
+  productId?: string;
+  goal: string;
+  background: string;
+  imageFit: 'cover' | 'contain';
+  badge: string;
+  caption: string;
+}
+
 export type OrderStatus =
   | 'pending'
   | 'accepted'

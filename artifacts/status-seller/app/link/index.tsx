@@ -18,6 +18,8 @@ import { useColors } from '@/hooks/useColors';
 import { useApp } from '@/context/AppContext';
 import { BUTTON_STYLES } from '@/constants/mockData';
 import ProductOverlay from '@/components/ui/ProductOverlay';
+import { Image } from 'react-native';
+import { getImageSource } from '@/utils/imageSource';
 
 const LINK_COLORS = [
   '#25D366',
@@ -162,12 +164,20 @@ export default function LinkScreen() {
               ]}
             >
               {/* Mini product image */}
-              <LinearGradient
-                colors={[selectedProduct.colorHex ?? colors.primary + 'CC', selectedProduct.colorHex ? selectedProduct.colorHex + '88' : colors.primary + '44']}
-                style={[styles.previewImage, { borderRadius: 12 }]}
-              >
-                <Ionicons name="image-outline" size={36} color="rgba(255,255,255,0.4)" />
-              </LinearGradient>
+              {selectedProduct.images?.[0] ? (
+                <Image
+                  source={getImageSource(selectedProduct.images[0])}
+                  style={[styles.previewImage, { borderRadius: 12 }]}
+                  resizeMode="cover"
+                />
+              ) : (
+                <LinearGradient
+                  colors={[selectedProduct.colorHex ?? colors.primary + 'CC', selectedProduct.colorHex ? selectedProduct.colorHex + '88' : colors.primary + '44']}
+                  style={[styles.previewImage, { borderRadius: 12 }]}
+                >
+                  <Ionicons name="image-outline" size={36} color="rgba(255,255,255,0.4)" />
+                </LinearGradient>
+              )}
               <Text style={[styles.previewTitle, { color: colors.foreground, fontFamily: 'Inter_700Bold' }]}>
                 {selectedProduct.title}
               </Text>

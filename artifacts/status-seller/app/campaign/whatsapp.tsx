@@ -3,6 +3,7 @@ import {
   Image,
   Platform,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   TextInput,
@@ -19,10 +20,23 @@ import { useApp } from '@/context/AppContext';
 export default function WhatsAppPostScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { products, store } = useApp();
+  const { products, store, campaignDraft } = useApp();
   const topInset = Platform.OS === 'web' ? 0 : insets.top;
 
-  const product = products.find((p) => p.status === 'active') ?? products[0];
+  const product = products.find((p) => p.id === campaignDraft?.productId) ?? products.find((p) => p.status === 'active') ?? products[0];
+  const posterImage = campaignDraft?.imageUri ?? product?.images?.[0]?.toString();
+
+  const handlePost = async () => {
+    const link = product?.shopLink ? `https://${product.shopLink}` : '';
+    try {
+      await Share.share({
+        title: `${store?.name ?? 'Your shop'} status`,
+        message: `${campaignDraft?.caption ?? `Shop ${product?.title ?? 'this product'}`}\n\nShop now: ${link}`,
+      });
+    } catch {
+      // The native share sheet was dismissed.
+    }
+  };
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -64,9 +78,9 @@ export default function WhatsAppPostScreen() {
 
           {/* Product card */}
           <View style={[styles.waProductCard, { backgroundColor: '#1F2937' }]}>
-            {product?.images?.[0] ? (
+            {posterImage ? (
               <Image
-                source={getImageSource(product.images[0])}
+                source={getImageSource(posterImage)}
                 style={styles.waProductImage}
                 resizeMode="cover"
               />
@@ -89,9 +103,10 @@ export default function WhatsAppPostScreen() {
 
           {/* Caption input */}
           <View style={styles.waCaptionRow}>
-            <TextInput
+              <TextInput
               style={[styles.waCaptionInput, { color: 'rgba(255,255,255,0.6)', fontFamily: 'Inter_400Regular' }]}
-              placeholder="Add a caption..."
+                defaultValue={campaignDraft?.caption}
+                placeholder="Add a caption..."
               placeholderTextColor="rgba(255,255,255,0.3)"
             />
             <TouchableOpacity style={[styles.waSendBtn, { backgroundColor: '#25D366' }]}>
@@ -125,9 +140,7 @@ export default function WhatsAppPostScreen() {
       {/* Post button */}
       <View style={[styles.footer, { paddingBottom: insets.bottom + 16, borderTopColor: colors.border, backgroundColor: colors.background }]}>
         <TouchableOpacity
-          onPress={() => {
-            router.push('/(tabs)');
-          }}
+          onPress={handlePost}
           style={[styles.postBtn, { backgroundColor: '#25D366' }]}
         >
           <Feather name="message-circle" size={18} color="#fff" />

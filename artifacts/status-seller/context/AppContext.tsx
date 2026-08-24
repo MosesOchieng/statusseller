@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { User, Store, Product, Order, Message, Notification } from '@/types';
+import type { User, Store, Product, Order, Message, Notification, CampaignDraft } from '@/types';
 import { generateId } from '@/utils/formatters';
 import { apiFetch, saveTokens, clearTokens } from '@/lib/api';
 
@@ -158,6 +158,9 @@ interface AppContextValue {
   clearChat: () => void;
   isAILoading: boolean;
   groqEnabled: boolean;
+  campaignDraft: CampaignDraft | null;
+  setCampaignDraft: (draft: CampaignDraft) => void;
+  clearCampaignDraft: () => void;
 }
 
 const AppContext = createContext<AppContextValue | null>(null);
@@ -216,6 +219,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [stats, setStats] = useState<DashboardStats>(DEFAULT_STATS);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isAILoading, setIsAILoading] = useState(false);
+  const [campaignDraft, setCampaignDraftState] = useState<CampaignDraft | null>(null);
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'm0',
@@ -446,6 +450,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setMessages([{ id: generateId(), role: 'assistant', content: "Chat cleared! I'm ready to help. Ask me anything about your store. 🚀", timestamp: new Date().toISOString() }]);
   };
 
+  const setCampaignDraft = (draft: CampaignDraft) => setCampaignDraftState(draft);
+  const clearCampaignDraft = () => setCampaignDraftState(null);
+
   return (
     <AppContext.Provider
       value={{
@@ -471,6 +478,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         clearChat,
         isAILoading,
         groqEnabled,
+        campaignDraft,
+        setCampaignDraft,
+        clearCampaignDraft,
       }}
     >
       {children}

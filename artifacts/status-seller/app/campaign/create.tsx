@@ -30,7 +30,7 @@ const CREATION_OPTIONS = [
 export default function CreateCampaignScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { products } = useApp();
+  const { products, setCampaignDraft } = useApp();
   const topInset = Platform.OS === 'web' ? 0 : insets.top;
 
   const [selectedGoal, setSelectedGoal] = useState<string>('New Arrival');
@@ -63,14 +63,25 @@ export default function CreateCampaignScreen() {
     setActiveOption(id);
     if (id === 'images') {
       await handlePickImages();
-    } else if (id === 'ai' || id === 'products') {
+    } else if (id === 'ai') {
       if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      router.push('/campaign/preview');
     }
   };
 
   const handleContinue = () => {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    const selectedProduct = products.find((p) => p.id === selectedProducts[0]) ?? activeProducts[0] ?? products[0];
+    setCampaignDraft({
+      imageUri: uploadedImages[0] ?? selectedProduct?.images?.[0]?.toString(),
+      productId: selectedProduct?.id,
+      goal: selectedGoal,
+      background: selectedProduct?.colorHex ?? '#1A1A2E',
+      imageFit: 'cover',
+      badge: selectedGoal.toUpperCase(),
+      caption: selectedProduct
+        ? `Meet ${selectedProduct.title}. ${selectedProduct.description || 'Quality you can trust.'}\n\nShop now: ${selectedProduct.shopLink}`
+        : 'Create a status that gets people shopping.',
+    });
     router.push('/campaign/preview');
   };
 
