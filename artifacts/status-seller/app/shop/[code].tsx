@@ -2,9 +2,10 @@
  * Customer-facing shopping popup — "Everything Happens Inside the Popup"
  * Tabs: Product → Cart → Chat → Checkout → Confirmed
  */
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Alert,
+  ActivityIndicator,
   FlatList,
   Image,
   KeyboardAvoidingView,
@@ -21,6 +22,9 @@ import { Feather } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useColors } from '@/hooks/useColors';
 import { useApp } from '@/context/AppContext';
+import { apiFetch } from '@/lib/api';
+import { apiProductToProduct } from '@/context/AppContext';
+import type { Product } from '@/types';
 import { LinearGradient } from 'expo-linear-gradient';
 import { formatCurrency } from '@/utils/formatters';
 import { getImageSource } from '@/utils/imageSource';
@@ -63,8 +67,7 @@ export default function ShopScreen() {
   const insets = useSafeAreaInsets();
   const { code } = useLocalSearchParams<{ code: string }>();
   const { products, store } = useApp();
-
-  const product = products.find((p) => p.shopLink?.includes(code ?? '')) ?? products[0];
+  const matchedProduct = products.find((p) => p.shopLink?.includes(code ?? ''));
 
   const [tab, setTab] = useState<TabType>('product');
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -76,7 +79,7 @@ export default function ShopScreen() {
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [offerState, setOfferState] = useState<OfferState>('none');
   const [offerPrice, setOfferPrice] = useState('');
-  const [agreedPrice, setAgreedPrice] = useState(product?.price ?? 0);
+  const [agreedPrice, setAgreedPrice] = useState(0);
   const [offerTimer, setOfferTimer] = useState(598); // 9:58
   const [showOfferInput, setOfferInput] = useState(false);
 
@@ -89,8 +92,36 @@ export default function ShopScreen() {
 
   const listRef = useRef<FlatList>(null);
   const topInset = Platform.OS === 'web' ? 0 : insets.top;
+  const [publicProduct, setPublicProduct] = useState<Product | null>(null);
+  const [publicStoreName, setPublicStoreName] = useState<string | null>(null);
 
-  if (!product) return null;
+  useEffect(() => {
+    if (!code || matchedProduct) return;
+    apiFetch<{ product: Record<string, unknown>; store: { name: string } }>(
+      `/public/shop/${encodeURIComponent(code)}`,
+    )
+      .then((data) => {
+        const nextProduct = apiProductToProduct(data.product);
+        setPublicProduct(nextProduct);
+        setPublicStoreName(data.store.name);
+        setAgreedPrice(nextProduct.price);
+      })
+      .catch(() => setPublicProduct(null));
+  }, [code, matchedProduct]);
+
+  const product = matchedProduct ?? publicProduct;
+  const sellerName = store?.name ?? publicStoreName ?? 'StatusSeller shop';
+
+  if (!product) {
+    return (
+      <View style={[styles.emptyShop, { backgroundColor: colors.background }]}>
+        <ActivityIndicator size="small" color={colors.primary} />
+        <Text style={[styles.emptyShopText, { color: colors.mutedForeground, fontFamily: 'Inter_400Regular' }]}>
+          Loading shop…
+        </Text>
+      </View>
+    );
+  }
 
   const colors_v = product.variants.find((v) => v.name === 'Color');
   const sizes_v = product.variants.find((v) => v.name === 'Size');
@@ -263,7 +294,7 @@ export default function ShopScreen() {
           <View style={[styles.storeBadge, { backgroundColor: colors.primary }]}>
             <Feather name="check-circle" size={10} color="#fff" />
             <Text style={[styles.storeText, { fontFamily: 'Inter_600SemiBold' }]}>
-              {' '}{store?.name ?? 'Urban Wear'}
+              {' '}{sellerName}
             </Text>
           </View>
           <View style={styles.ratingRow}>
@@ -387,7 +418,7 @@ export default function ShopScreen() {
         >
           <Feather name="message-circle" size={18} color={colors.primary} />
           <Text style={[styles.chatBtnText, { color: colors.primary, fontFamily: 'Inter_600SemiBold' }]}>
-            Chat with {store?.name ?? 'Urban Wear'}
+            Chat with {sellerName}
           </Text>
         </TouchableOpacity>
 
@@ -475,7 +506,7 @@ export default function ShopScreen() {
       >
         <Feather name="message-circle" size={18} color={colors.primary} />
         <Text style={[styles.chatBtnText, { color: colors.primary, fontFamily: 'Inter_600SemiBold' }]}>
-          Chat with {store?.name ?? 'Urban Wear'}
+          Chat with {sellerName}
         </Text>
       </TouchableOpacity>
 
@@ -499,7 +530,7 @@ export default function ShopScreen() {
         </View>
         <View>
           <Text style={[styles.chatStoreName, { color: colors.foreground, fontFamily: 'Inter_700Bold' }]}>
-            {store?.name ?? 'Urban Wear'} ✓
+            {sellerName} ✓
           </Text>
           <View style={styles.onlineRow}>
             <View style={[styles.onlineDot, { backgroundColor: '#25D366' }]} />
@@ -859,7 +890,7 @@ export default function ShopScreen() {
           <View>
             <View style={styles.storeNameRow}>
               <Text style={[styles.storeName, { color: colors.foreground, fontFamily: 'Inter_700Bold' }]}>
-                {store?.name ?? 'Urban Wear'}
+                {sellerName}
               </Text>
               <Feather name="check-circle" size={13} color={colors.primary} />
             </View>
@@ -915,6 +946,8 @@ export default function ShopScreen() {
 }
 
 const styles = StyleSheet.create({
+  emptyShop: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
+  emptyShopText: { fontSize: 14 },
   container: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingBottom: 12, borderBottomWidth: 1, gap: 10 },
   closeBtn: { padding: 4 },

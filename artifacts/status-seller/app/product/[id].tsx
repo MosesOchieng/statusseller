@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import {
   Alert,
+  Image,
   Platform,
   ScrollView,
   StyleSheet,
@@ -19,6 +20,7 @@ import Input from '@/components/ui/Input';
 import Badge from '@/components/ui/Badge';
 import { PRODUCT_CATEGORIES } from '@/constants/mockData';
 import { formatCurrency, formatRelativeTime } from '@/utils/formatters';
+import { getImageSource } from '@/utils/imageSource';
 import type { ProductStatus } from '@/types';
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -151,7 +153,11 @@ export default function ProductDetailScreen() {
             { backgroundColor: product.colorHex ?? colors.muted, borderRadius: colors.radius },
           ]}
         >
-          <Ionicons name="image-outline" size={52} color={colors.mutedForeground + '60'} />
+          {product.images?.[0] ? (
+            <Image source={getImageSource(product.images[0])} style={styles.imageArea} resizeMode="cover" />
+          ) : (
+            <Ionicons name="image-outline" size={52} color={colors.mutedForeground + '60'} />
+          )}
         </View>
 
         {/* Stats row */}

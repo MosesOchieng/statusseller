@@ -59,7 +59,7 @@ function apiBusinessToStore(b: NonNullable<AuthResponse['business']>): Store {
   };
 }
 
-function apiProductToProduct(p: Record<string, unknown>): Product {
+export function apiProductToProduct(p: Record<string, unknown>): Product {
   return {
     id: p['id'] as string,
     title: p['title'] as string,

@@ -67,7 +67,7 @@ export default function ProductsScreen() {
       {/* Header */}
       <View style={[styles.header, { paddingTop: topInset + 16, borderBottomColor: colors.border }]}>
         <Text style={[styles.headerTitle, { color: colors.foreground, fontFamily: 'Inter_700Bold' }]}>
-          Products
+          Catalogue
         </Text>
         <View style={styles.headerActions}>
           <TouchableOpacity style={[styles.iconBtn, { borderColor: colors.border }]}>
@@ -85,9 +85,9 @@ export default function ProductsScreen() {
       {/* Search */}
       <View style={[styles.searchWrap, { backgroundColor: colors.muted, marginHorizontal: 16 }]}>
         <Feather name="search" size={16} color={colors.mutedForeground} />
-        <TextInput
+           <TextInput
           style={[styles.searchInput, { color: colors.foreground, fontFamily: 'Inter_400Regular' }]}
-          placeholder="Search products..."
+           placeholder="Search your catalogue..."
           placeholderTextColor={colors.mutedForeground}
           value={search}
           onChangeText={setSearch}
