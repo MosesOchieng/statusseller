@@ -55,7 +55,8 @@ router.post("/", requireBusiness, async (req: AuthRequest, res: Response) => {
     }
 
     const linkCode = generateLinkCode();
-    const shopLink = `statusseller.app/p/${linkCode}`;
+    const publicAppUrl = (process.env["PUBLIC_APP_URL"] ?? "https://statusseller.app").replace(/\/$/, "");
+    const shopLink = `${publicAppUrl}/p/${linkCode}`;
 
     const [product] = await db
       .insert(schema.products)

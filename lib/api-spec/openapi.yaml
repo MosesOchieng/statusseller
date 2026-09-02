@@ -10,6 +10,8 @@ servers:
 tags:
   - name: health
     description: Health operations
+  - name: ai
+    description: AI assistant operations
 paths:
   /healthz:
     get:
@@ -24,6 +26,30 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+  /ai/chat:
+    post:
+      operationId: chatWithAssistant
+      tags: [ai]
+      summary: Ask the business assistant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AiChatRequest"
+      responses:
+        "200":
+          description: Assistant response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AiChatResponse"
+        "400":
+          description: Invalid request
+        "502":
+          description: AI provider error
+        "503":
+          description: AI provider is not configured
 components:
   schemas:
     HealthStatus:
@@ -33,4 +59,47 @@ components:
           type: string
       required:
         - status
+    AiChatRequest:
+      type: object
+      properties:
+        message:
+          type: string
+        history:
+          type: array
+          items:
+            type: object
+            properties:
+              role:
+                type: string
+                enum: [user, assistant]
+              content:
+                type: string
+            required: [role, content]
+        store:
+          type: object
+          properties:
+            name:
+              type: string
+            location:
+              type: string
+        products:
+          type: array
+          items:
+            type: object
+            properties:
+              title:
+                type: string
+              price:
+                type: number
+              stock:
+                type: number
+              status:
+                type: string
+      required: [message]
+    AiChatResponse:
+      type: object
+      properties:
+        message:
+          type: string
+      required: [message]
 

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import { db, schema } from "../lib/db";
 import { getParam } from "../lib/params";
 
@@ -14,6 +14,7 @@ router.get("/shop/:code", async (req, res) => {
   }
 
   try {
+    const publicAppUrl = (process.env["PUBLIC_APP_URL"] ?? "https://statusseller.app").replace(/\/$/, "");
     const [result] = await db
       .select({
         product: schema.products,
@@ -21,7 +22,12 @@ router.get("/shop/:code", async (req, res) => {
       })
       .from(schema.products)
       .innerJoin(schema.businesses, eq(schema.products.businessId, schema.businesses.id))
-      .where(eq(schema.products.shopLink, `statusseller.app/p/${code}`))
+      .where(
+        or(
+          eq(schema.products.shopLink, `${publicAppUrl}/p/${code}`),
+          eq(schema.products.shopLink, `statusseller.app/p/${code}`),
+        ),
+      )
       .limit(1);
 
     if (!result || result.product.status !== "active") {

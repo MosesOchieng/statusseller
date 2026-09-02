@@ -20,6 +20,7 @@ import { BUTTON_STYLES } from '@/constants/mockData';
 import ProductOverlay from '@/components/ui/ProductOverlay';
 import { Image } from 'react-native';
 import { getImageSource } from '@/utils/imageSource';
+import { toPublicUrl } from '@/utils/links';
 
 const LINK_COLORS = [
   '#25D366',
@@ -44,8 +45,7 @@ export default function LinkScreen() {
   const [copied, setCopied] = useState(false);
   const [overlayVisible, setOverlayVisible] = useState(false);
 
-  const link = selectedProduct?.shopLink ?? 'statusseller.app/p/demo';
-  const fullLink = `https://${link}`;
+  const fullLink = toPublicUrl(selectedProduct?.shopLink);
   const buttonStyleObj = BUTTON_STYLES.find((b) => b.id === selectedStyle);
 
   const handleCopy = async () => {

@@ -13,15 +13,12 @@ import { router } from 'expo-router';
 import { useColors } from '@/hooks/useColors';
 
 const PLATFORMS = [
-  { id: 'whatsapp_status', name: 'WhatsApp Status', connected: true, color: '#25D366' },
-  { id: 'instagram_story', name: 'Instagram Story', connected: true, color: '#E1306C' },
-  { id: 'facebook_story', name: 'Facebook Story', connected: true, color: '#1877F2' },
-  { id: 'facebook_feed', name: 'Facebook Feed', connected: true, color: '#1877F2' },
-  { id: 'instagram_feed', name: 'Instagram Feed', connected: true, color: '#E1306C' },
-  { id: 'tiktok', name: 'TikTok', connected: true, color: '#000000' },
-  { id: 'telegram', name: 'Telegram', connected: false, color: '#229ED9' },
-  { id: 'snapchat', name: 'Snapchat', connected: false, color: '#FFFC00' },
-  { id: 'x_twitter', name: 'X (Twitter)', connected: false, color: '#000000' },
+  { id: 'whatsapp_status', name: 'WhatsApp Status', color: '#25D366' },
+  { id: 'instagram_story', name: 'Instagram Story', color: '#E1306C' },
+  { id: 'facebook_story', name: 'Facebook Story', color: '#1877F2' },
+  { id: 'facebook_feed', name: 'Facebook Feed', color: '#1877F2' },
+  { id: 'instagram_feed', name: 'Instagram Feed', color: '#E1306C' },
+  { id: 'tiktok', name: 'TikTok', color: '#000000' },
 ] as const;
 
 const PLATFORM_ICONS: Record<string, 'message-circle' | 'instagram' | 'facebook' | 'twitter' | 'send'> = {
@@ -37,9 +34,7 @@ const PLATFORM_ICONS: Record<string, 'message-circle' | 'instagram' | 'facebook'
 export default function PublishCampaignScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const [selected, setSelected] = useState<Set<string>>(
-    new Set(['whatsapp_status', 'instagram_story', 'facebook_story', 'instagram_feed', 'tiktok'])
-  );
+  const [selected, setSelected] = useState<Set<string>>(new Set(['whatsapp_status']));
   const topInset = Platform.OS === 'web' ? 0 : insets.top;
 
   const togglePlatform = (id: string) => {
@@ -82,7 +77,7 @@ export default function PublishCampaignScreen() {
           return (
             <TouchableOpacity
               key={platform.id}
-              onPress={() => platform.connected && togglePlatform(platform.id)}
+              onPress={() => togglePlatform(platform.id)}
               style={[
                 styles.platformRow,
                 { backgroundColor: colors.card, borderColor: isSelected ? colors.primary : colors.border },
@@ -95,28 +90,20 @@ export default function PublishCampaignScreen() {
                 <Text style={[styles.platformName, { color: colors.foreground, fontFamily: 'Inter_600SemiBold' }]}>
                   {platform.name}
                 </Text>
-                <Text style={[styles.platformStatus, { color: platform.connected ? '#16A34A' : colors.mutedForeground, fontFamily: 'Inter_400Regular' }]}>
-                  {platform.connected ? 'Connected' : 'Not connected'}
+                <Text style={[styles.platformStatus, { color: colors.mutedForeground, fontFamily: 'Inter_400Regular' }]}>
+                  Select it, then use your device share sheet
                 </Text>
               </View>
-              {platform.connected ? (
-                <View
-                  style={[
-                    styles.checkbox,
-                    isSelected
-                      ? { backgroundColor: colors.primary, borderColor: colors.primary }
-                      : { backgroundColor: 'transparent', borderColor: colors.border },
-                  ]}
-                >
-                  {isSelected && <Feather name="check" size={14} color="#fff" />}
-                </View>
-              ) : (
-                <TouchableOpacity style={[styles.connectBtn, { borderColor: colors.primary }]}>
-                  <Text style={[styles.connectText, { color: colors.primary, fontFamily: 'Inter_500Medium' }]}>
-                    Connect
-                  </Text>
-                </TouchableOpacity>
-              )}
+              <View
+                style={[
+                  styles.checkbox,
+                  isSelected
+                    ? { backgroundColor: colors.primary, borderColor: colors.primary }
+                    : { backgroundColor: 'transparent', borderColor: colors.border },
+                ]}
+              >
+                {isSelected && <Feather name="check" size={14} color="#fff" />}
+              </View>
             </TouchableOpacity>
           );
         })}

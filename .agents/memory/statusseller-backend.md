@@ -33,3 +33,10 @@ The development database may be provisioned but have no application tables until
 **Why:** Auth and public-shop smoke tests returned `relation "users" does not exist` even though the API could connect to PostgreSQL.
 
 **How to apply:** When a fresh development database is used, apply the checked-in `lib/db` schema before testing auth or seeded demo data. Do not add startup-time DDL.
+
+## AI provider key placement
+Groq credentials belong only in the API server environment as `GROQ_API_KEY`; never use an `EXPO_PUBLIC_` variable for provider keys because Expo bundles expose those values to mobile and web clients.
+
+**Why:** A PWA and a native app both allow users to inspect bundled JavaScript.
+
+**How to apply:** Route AI requests through the authenticated API and set the secret separately on each deployed API environment.

@@ -59,6 +59,15 @@ export interface CampaignDraft {
   imageFit: 'cover' | 'contain';
   badge: string;
   caption: string;
+  imageAdjustments?: ImageAdjustments;
+  showLinkOnImage?: boolean;
+}
+
+export interface ImageAdjustments {
+  brightness: number;
+  contrast: number;
+  saturation: number;
+  warmth: number;
 }
 
 export type OrderStatus =

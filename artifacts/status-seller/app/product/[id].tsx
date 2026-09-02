@@ -21,6 +21,7 @@ import Badge from '@/components/ui/Badge';
 import { PRODUCT_CATEGORIES } from '@/constants/mockData';
 import { formatCurrency, formatRelativeTime } from '@/utils/formatters';
 import { getImageSource } from '@/utils/imageSource';
+import { toPublicUrl } from '@/utils/links';
 import type { ProductStatus } from '@/types';
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -325,7 +326,7 @@ export default function ProductDetailScreen() {
                 </Text>
               </View>
               <Text style={[styles.linkUrl, { color: colors.primary, fontFamily: 'Inter_500Medium' }]}>
-                https://{product.shopLink}
+                {toPublicUrl(product.shopLink)}
               </Text>
               <View style={styles.linkActions}>
                 <TouchableOpacity

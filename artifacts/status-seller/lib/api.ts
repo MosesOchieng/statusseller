@@ -1,9 +1,12 @@
 import { setBaseUrl, setAuthTokenGetter } from "@workspace/api-client-react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export const API_BASE_URL = process.env["EXPO_PUBLIC_DOMAIN"]
-  ? `https://${process.env["EXPO_PUBLIC_DOMAIN"]}/api`
-  : "http://localhost:8080/api";
+const configuredApiUrl = process.env["EXPO_PUBLIC_API_BASE_URL"]?.replace(/\/$/, "");
+export const API_BASE_URL = configuredApiUrl
+  ? (configuredApiUrl.endsWith("/api") ? configuredApiUrl : `${configuredApiUrl}/api`)
+  : process.env["EXPO_PUBLIC_DOMAIN"]
+    ? `https://${process.env["EXPO_PUBLIC_DOMAIN"]}/api`
+    : "http://localhost:8080/api";
 
 const ACCESS_TOKEN_KEY = "ss_access_token";
 const REFRESH_TOKEN_KEY = "ss_refresh_token";

@@ -16,6 +16,7 @@ import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useColors } from '@/hooks/useColors';
 import { useApp } from '@/context/AppContext';
+import { toPublicUrl } from '@/utils/links';
 
 export default function WhatsAppPostScreen() {
   const colors = useColors();
@@ -24,10 +25,11 @@ export default function WhatsAppPostScreen() {
   const topInset = Platform.OS === 'web' ? 0 : insets.top;
 
   const product = products.find((p) => p.id === campaignDraft?.productId) ?? products.find((p) => p.status === 'active') ?? products[0];
-  const posterImage = campaignDraft?.imageUri ?? product?.images?.[0]?.toString();
+  const posterImage = campaignDraft?.imageUri ?? product?.images?.[0];
+  const link = toPublicUrl(product?.shopLink, '');
+  const showLinkOnImage = campaignDraft?.showLinkOnImage ?? true;
 
   const handlePost = async () => {
-    const link = product?.shopLink ? `https://${product.shopLink}` : '';
     try {
       await Share.share({
         title: `${store?.name ?? 'Your shop'} status`,
@@ -78,19 +80,27 @@ export default function WhatsAppPostScreen() {
 
           {/* Product card */}
           <View style={[styles.waProductCard, { backgroundColor: '#1F2937' }]}>
-            {posterImage ? (
-              <Image
-                source={getImageSource(posterImage)}
-                style={styles.waProductImage}
-                resizeMode="cover"
-              />
-            ) : (
-              <View style={[styles.waProductImage, { backgroundColor: '#374151', alignItems: 'center', justifyContent: 'center' }]}>
-                <Text style={[styles.waProductTitle, { color: '#fff', fontFamily: 'Inter_700Bold' }]}>
-                  {product?.title?.toUpperCase() ?? 'NIKE\nAIR FORCE 1'}
-                </Text>
-              </View>
-            )}
+            <View style={styles.waImageFrame}>
+              {posterImage ? (
+                <Image
+                  source={getImageSource(posterImage)}
+                  style={styles.waProductImage}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View style={[styles.waProductImage, { backgroundColor: '#374151', alignItems: 'center', justifyContent: 'center' }]}>
+                  <Text style={[styles.waProductTitle, { color: '#fff', fontFamily: 'Inter_700Bold' }]}>
+                    {product?.title?.toUpperCase() ?? 'NIKE\nAIR FORCE 1'}
+                  </Text>
+                </View>
+              )}
+              {showLinkOnImage && link ? (
+                <View style={styles.waLinkOverlay}>
+                  <Feather name="link" size={11} color="#fff" />
+                  <Text style={styles.waLinkText} numberOfLines={1}>{link}</Text>
+                </View>
+              ) : null}
+            </View>
             <View style={styles.waProductInfo}>
               <Text style={[styles.waProductPrice, { color: '#25D366', fontFamily: 'Inter_700Bold' }]}>
                 KSh {product?.price?.toLocaleString() ?? '6,000'}
@@ -172,6 +182,9 @@ const styles = StyleSheet.create({
   waName: { fontSize: 16 },
   waProductCard: { margin: 12, borderRadius: 16, overflow: 'hidden' },
   waProductImage: { height: 180, width: '100%', alignItems: 'center', justifyContent: 'center' },
+  waImageFrame: { position: 'relative' },
+  waLinkOverlay: { position: 'absolute', bottom: 8, left: 8, right: 8, flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 8, paddingVertical: 5, borderRadius: 8, backgroundColor: 'rgba(0,0,0,0.62)' },
+  waLinkText: { flex: 1, color: '#fff', fontSize: 10, fontWeight: '600' },
   waProductTitle: { fontSize: 20, textAlign: 'center', lineHeight: 28 },
   waProductInfo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 14 },
   waProductPrice: { fontSize: 20 },

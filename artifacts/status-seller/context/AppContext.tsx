@@ -5,8 +5,6 @@ import { generateId } from '@/utils/formatters';
 import { apiFetch, saveTokens, clearTokens } from '@/lib/api';
 import { PRODUCT_IMAGES } from '@/constants/localImages';
 
-const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
-const GROQ_MODEL = 'llama-3.1-8b-instant';
 
 // ─── Type helpers for API responses ──────────────────────────────────────────
 interface AuthResponse {
@@ -241,8 +239,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     },
   ]);
 
-  const groqKey = process.env['EXPO_PUBLIC_GROQ_API_KEY'] ?? '';
-  const groqEnabled = groqKey.length > 0;
+  // Groq is called by the API server so the provider key never ships in the
+  // mobile or PWA bundle. If the server has no key, the local response below
+  // keeps the assistant usable in development.
+  const groqEnabled = true;
 
   const productsRef = useRef(products);
   productsRef.current = products;
@@ -436,28 +436,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       setIsAILoading(true);
 
       try {
-        const key = process.env['EXPO_PUBLIC_GROQ_API_KEY'] ?? '';
-        if (key) {
-          const systemPrompt = buildSystemPrompt(storeRef.current, productsRef.current);
-          const resp = await fetch(GROQ_API_URL, {
+        try {
+          const data = await apiFetch<{ message: string }>('/ai/chat', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${key}` },
             body: JSON.stringify({
-              model: GROQ_MODEL,
-              messages: [
-                { role: 'system', content: systemPrompt },
-                ...messages.slice(-10).map((m) => ({ role: m.role, content: m.content })),
-                { role: 'user', content },
-              ],
-              max_tokens: 300,
-              temperature: 0.7,
+              message: content,
+              history: messages.slice(-10).map((m) => ({ role: m.role, content: m.content })),
+              store: { name: storeRef.current?.name, location: storeRef.current?.location },
+              products: productsRef.current.map((p) => ({ title: p.title, price: p.price, stock: p.stock, status: p.status })),
             }),
           });
-          if (!resp.ok) throw new Error(`Groq error: ${resp.status}`);
-          const data = await resp.json();
-          const aiContent: string = data.choices?.[0]?.message?.content ?? 'Sorry, I could not get a response right now.';
-          setMessages((prev) => [...prev, { id: generateId(), role: 'assistant', content: aiContent, timestamp: new Date().toISOString() }]);
-        } else {
+          setMessages((prev) => [...prev, { id: generateId(), role: 'assistant', content: data.message, timestamp: new Date().toISOString() }]);
+        } catch {
           await new Promise<void>((resolve) => setTimeout(resolve, 900));
           setMessages((prev) => [
             ...prev,

@@ -17,8 +17,11 @@ import * as Haptics from 'expo-haptics';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useColors } from '@/hooks/useColors';
 import { useApp } from '@/context/AppContext';
+import type { ImageAdjustments } from '@/types';
+import { toPublicUrl } from '@/utils/links';
 
 const CAMPAIGN_GOALS = ['New Arrival', 'Flash Sale', 'Weekend Offer', 'Clearance', 'Brand Awareness', 'Custom'] as const;
+const DEFAULT_IMAGE_ADJUSTMENTS: ImageAdjustments = { brightness: 0, contrast: 100, saturation: 100, warmth: 0 };
 
 const CREATION_OPTIONS = [
   { id: 'images', icon: 'image' as const, title: 'Upload Images', subtitle: 'Add photos from your gallery', color: '#3B82F6' },
@@ -72,14 +75,16 @@ export default function CreateCampaignScreen() {
     if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     const selectedProduct = products.find((p) => p.id === selectedProducts[0]) ?? activeProducts[0] ?? products[0];
     setCampaignDraft({
-      imageUri: uploadedImages[0] ?? selectedProduct?.images?.[0]?.toString(),
+      imageUri: uploadedImages[0],
       productId: selectedProduct?.id,
       goal: selectedGoal,
       background: selectedProduct?.colorHex ?? '#1A1A2E',
       imageFit: 'cover',
       badge: selectedGoal.toUpperCase(),
+      imageAdjustments: DEFAULT_IMAGE_ADJUSTMENTS,
+      showLinkOnImage: true,
       caption: selectedProduct
-        ? `Meet ${selectedProduct.title}. ${selectedProduct.description || 'Quality you can trust.'}\n\nShop now: ${selectedProduct.shopLink}`
+        ? `Meet ${selectedProduct.title}. ${selectedProduct.description || 'Quality you can trust.'}\n\nShop now: ${toPublicUrl(selectedProduct.shopLink)}`
         : 'Create a status that gets people shopping.',
     });
     router.push('/campaign/preview');
