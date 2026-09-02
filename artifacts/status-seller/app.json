@@ -18,7 +18,16 @@
     },
     "android": {},
     "web": {
-      "favicon": "./assets/images/icon.png"
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/icon.png",
+      "name": "StatusSeller",
+      "shortName": "StatusSeller",
+      "lang": "en",
+      "themeColor": "#25D366",
+      "backgroundColor": "#F8FAFC",
+      "display": "standalone",
+      "orientation": "portrait"
     },
     "plugins": [
       [

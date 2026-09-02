@@ -1,0 +1,27 @@
+services:
+  - type: web
+    name: statusseller-api
+    runtime: node
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter @workspace/api-server run build
+    startCommand: pnpm --filter @workspace/api-server run start
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SESSION_SECRET
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: PUBLIC_APP_URL
+        sync: false
+
+  - type: static
+    name: statusseller-web
+    buildCommand: pnpm install --frozen-lockfile && pnpm --filter @workspace/status-seller run build:web
+    staticPublishPath: artifacts/status-seller/dist
+    envVars:
+      - key: EXPO_PUBLIC_API_BASE_URL
+        sync: false
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

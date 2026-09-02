@@ -21,6 +21,16 @@ export const SOCIAL_LOGOS = {
   instagram: require('../assets/images/social/instagram.png'),
 } as const;
 
+export const BRAND_ASSETS = {
+  logo: require('../assets/images/branding/statusseller-logo.png'),
+} as const;
+
+export const CAMPAIGN_BACKGROUNDS = {
+  pink: require('../assets/images/backgrounds/pastel-pink.jpg'),
+  mint: require('../assets/images/backgrounds/mint-cloud.jpg'),
+  lilac: require('../assets/images/backgrounds/lilac-sky.jpg'),
+} as const;
+
 export const SPLASH_IMAGES = {
   hero: require('../assets/images/splash/splash-hero.jpg'),
   appLogo: require('../assets/images/splash/app-logo.png'),

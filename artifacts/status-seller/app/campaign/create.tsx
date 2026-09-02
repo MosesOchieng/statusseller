@@ -79,10 +79,14 @@ export default function CreateCampaignScreen() {
       productId: selectedProduct?.id,
       goal: selectedGoal,
       background: selectedProduct?.colorHex ?? '#1A1A2E',
+      backgroundImage: 'pink',
       imageFit: 'cover',
       badge: selectedGoal.toUpperCase(),
       imageAdjustments: DEFAULT_IMAGE_ADJUSTMENTS,
       showLinkOnImage: true,
+      showLogoOnImage: true,
+      removeBackground: false,
+      effect: 'original',
       caption: selectedProduct
         ? `Meet ${selectedProduct.title}. ${selectedProduct.description || 'Quality you can trust.'}\n\nShop now: ${toPublicUrl(selectedProduct.shopLink)}`
         : 'Create a status that gets people shopping.',

@@ -53,15 +53,22 @@ export interface Product {
 
 export interface CampaignDraft {
   imageUri?: string;
+  processedImageUri?: string;
   productId?: string;
   goal: string;
   background: string;
+  backgroundImage?: string;
   imageFit: 'cover' | 'contain';
   badge: string;
   caption: string;
   imageAdjustments?: ImageAdjustments;
   showLinkOnImage?: boolean;
+  showLogoOnImage?: boolean;
+  removeBackground?: boolean;
+  effect?: PosterEffect;
 }
+
+export type PosterEffect = 'original' | 'vivid' | 'dreamy' | 'mono' | 'warm';
 
 export interface ImageAdjustments {
   brightness: number;
