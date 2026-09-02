@@ -21,7 +21,7 @@ import Input from '@/components/ui/Input';
 export default function LoginScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { login } = useApp();
+  const { login, demoLogin } = useApp();
   const topInset = Platform.OS === 'web' ? 0 : insets.top;
 
   const [emailOrPhone, setEmailOrPhone] = useState('');
@@ -40,8 +40,8 @@ export default function LoginScreen() {
     try {
       await login(emailOrPhone, password);
       router.replace('/(tabs)');
-    } catch {
-      setError('Invalid credentials. Please try again.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -49,9 +49,12 @@ export default function LoginScreen() {
 
   const handleDemoLogin = async () => {
     setLoading(true);
+    setError('');
     try {
-      await login('urbanwear@gmail.com', 'demo1234');
+      await demoLogin();
       router.replace('/(tabs)');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Demo store could not be started.');
     } finally {
       setLoading(false);
     }

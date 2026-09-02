@@ -18,6 +18,7 @@ export const SOCIAL_LOGOS = {
   whatsapp: require('../assets/images/social/whatsapp.jpeg'),
   facebook: require('../assets/images/social/facebook.webp'),
   tiktok: require('../assets/images/social/tiktok.webp'),
+  instagram: require('../assets/images/social/instagram.png'),
 } as const;
 
 export const SPLASH_IMAGES = {

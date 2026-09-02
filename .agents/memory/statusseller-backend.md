@@ -26,3 +26,10 @@ The dev command is `build && start`. Every code change requires restarting the `
 
 ## Mobile API base URL
 `artifacts/status-seller/lib/api.ts` constructs the URL as `https://${EXPO_PUBLIC_DOMAIN}/api`. `EXPO_PUBLIC_DOMAIN` is set to `$REPLIT_DEV_DOMAIN` in the Expo dev script. Never hardcode localhost in app code.
+
+## Development database schema
+The development database may be provisioned but have no application tables until the existing Drizzle push workflow is run.
+
+**Why:** Auth and public-shop smoke tests returned `relation "users" does not exist` even though the API could connect to PostgreSQL.
+
+**How to apply:** When a fresh development database is used, apply the checked-in `lib/db` schema before testing auth or seeded demo data. Do not add startup-time DDL.

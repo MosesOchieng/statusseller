@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { User, Store, Product, Order, Message, Notification, CampaignDraft } from '@/types';
 import { generateId } from '@/utils/formatters';
 import { apiFetch, saveTokens, clearTokens } from '@/lib/api';
+import { PRODUCT_IMAGES } from '@/constants/localImages';
 
 const GROQ_API_URL = 'https://api.groq.com/openai/v1/chat/completions';
 const GROQ_MODEL = 'llama-3.1-8b-instant';
@@ -60,6 +61,16 @@ function apiBusinessToStore(b: NonNullable<AuthResponse['business']>): Store {
 }
 
 export function apiProductToProduct(p: Record<string, unknown>): Product {
+  const apiImages = Array.isArray(p['images'])
+    ? p['images'].filter((image): image is string => typeof image === 'string')
+    : [];
+  const localDemoImage =
+    p['title'] === 'Nike Air Force 1'
+      ? PRODUCT_IMAGES.boatShoes
+      : p['title'] === 'Classic Oxford Shoes'
+        ? PRODUCT_IMAGES.oxfordShoes
+        : undefined;
+
   return {
     id: p['id'] as string,
     title: p['title'] as string,
@@ -67,7 +78,7 @@ export function apiProductToProduct(p: Record<string, unknown>): Product {
     price: parseFloat(p['price'] as string),
     originalPrice: p['originalPrice'] ? parseFloat(p['originalPrice'] as string) : undefined,
     currency: (p['currency'] as string) ?? 'KSh',
-    images: (p['images'] as string[]) ?? [],
+    images: apiImages.length > 0 ? apiImages : localDemoImage ? [localDemoImage] : [],
     category: (p['category'] as string) ?? '',
     stock: (p['stock'] as number) ?? 0,
     sku: (p['sku'] as string) ?? '',
@@ -135,7 +146,8 @@ interface AppContextValue {
   user: User | null;
   store: Store | null;
   login: (email: string, password: string) => Promise<void>;
-  register: (name: string, email: string, password: string, businessName?: string) => Promise<void>;
+  demoLogin: () => Promise<void>;
+  register: (name: string, email: string, password: string, businessName?: string, phone?: string) => Promise<void>;
   logout: () => void;
   refreshData: () => Promise<void>;
   // Stats
@@ -309,10 +321,30 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     await loadBusinessData();
   };
 
-  const register = async (name: string, email: string, password: string, businessName?: string) => {
+  const demoLogin = async () => {
+    const data = await apiFetch<AuthResponse>('/auth/demo', { method: 'POST' });
+    await saveTokens(data.accessToken, data.refreshToken);
+
+    const appUser: User = {
+      id: data.user.id,
+      name: data.user.fullName,
+      email: data.user.email,
+      phone: data.user.phone ?? '',
+      avatar: data.user.avatarUrl ?? undefined,
+    };
+    const appStore = data.business ? apiBusinessToStore(data.business) : null;
+
+    setUser(appUser);
+    setStore(appStore);
+    setIsLoggedIn(true);
+    await AsyncStorage.setItem('ss_user', JSON.stringify({ user: appUser, store: appStore }));
+    await loadBusinessData();
+  };
+
+  const register = async (name: string, email: string, password: string, businessName?: string, phone?: string) => {
     const data = await apiFetch<AuthResponse>('/auth/register', {
       method: 'POST',
-      body: JSON.stringify({ fullName: name, email, password, businessName: businessName ?? name }),
+      body: JSON.stringify({ fullName: name, email, phone: phone || undefined, password, businessName: businessName ?? name }),
     });
 
     await saveTokens(data.accessToken, data.refreshToken);
@@ -460,6 +492,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         user,
         store,
         login,
+        demoLogin,
         register,
         logout,
         refreshData,

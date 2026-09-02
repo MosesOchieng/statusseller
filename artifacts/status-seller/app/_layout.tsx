@@ -58,8 +58,8 @@ export default function RootLayout() {
   }, [fontsLoaded, fontError]);
 
   if (!fontsLoaded && !fontError) {
-    // Show dark background while fonts load so there's no white flash after the green splash
-    return <View style={{ flex: 1, backgroundColor: '#0D1117' }} />;
+    // Match the light onboarding surface while fonts load.
+    return <View style={{ flex: 1, backgroundColor: '#FFFFFF' }} />;
   }
 
   return (

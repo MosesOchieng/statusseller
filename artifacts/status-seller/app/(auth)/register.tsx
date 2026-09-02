@@ -43,10 +43,10 @@ export default function RegisterScreen() {
     setError('');
     setLoading(true);
     try {
-      await register(fullName, email, password, businessName);
+      await register(fullName, email, password, businessName, phone);
       router.replace('/(auth)/kyb');
-    } catch {
-      setError('Registration failed. Please try again.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Registration failed. Please try again.');
     } finally {
       setLoading(false);
     }

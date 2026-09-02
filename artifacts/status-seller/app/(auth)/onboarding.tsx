@@ -14,7 +14,7 @@ import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useColors } from '@/hooks/useColors';
 import { LinearGradient } from 'expo-linear-gradient';
-import { PRODUCT_IMAGES } from '@/constants/localImages';
+import { PRODUCT_IMAGES, SOCIAL_LOGOS } from '@/constants/localImages';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -23,7 +23,7 @@ function Slide1() {
   return (
     <View style={s1.root}>
       {/* Outer phone frame */}
-      <View style={s1.phone}>
+        <View style={s1.phone}>
         {/* Status bar strip */}
         <View style={s1.statusBar}>
           <Text style={s1.statusTime}>9:41</Text>
@@ -72,15 +72,14 @@ function Slide1() {
       {/* Platform icons row */}
       <View style={s1.platformsRow}>
         {[
-          { label: 'WhatsApp', color: '#25D366', icon: '💬' },
-          { label: 'Instagram', color: '#E1306C', icon: '📸' },
-          { label: 'Facebook', color: '#1877F2', icon: '👍' },
-          { label: 'TikTok', color: '#010101', icon: '🎵' },
-          { label: 'Telegram', color: '#229ED9', icon: '✈️' },
+          { label: 'WhatsApp', color: '#25D366', source: SOCIAL_LOGOS.whatsapp },
+          { label: 'Instagram', color: '#E1306C', source: SOCIAL_LOGOS.instagram },
+          { label: 'Facebook', color: '#1877F2', source: SOCIAL_LOGOS.facebook },
+          { label: 'TikTok', color: '#010101', source: SOCIAL_LOGOS.tiktok },
         ].map((p) => (
           <View key={p.label} style={s1.platformPill}>
-            <View style={[s1.platformIcon, { backgroundColor: p.color }]}>
-              <Text style={{ fontSize: 10 }}>{p.icon}</Text>
+            <View style={[s1.platformIcon, { borderColor: p.color }]}>
+              <Image source={p.source} style={s1.platformImage} resizeMode="contain" />
             </View>
             <Text style={s1.platformLabel}>{p.label}</Text>
           </View>
@@ -92,15 +91,15 @@ function Slide1() {
 
 const s1 = StyleSheet.create({
   root: { alignItems: 'center', gap: 20 },
-  phone: { width: 200, backgroundColor: '#0d1117', borderRadius: 24, overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.4, shadowRadius: 20, shadowOffset: { width: 0, height: 8 }, elevation: 12 },
-  statusBar: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 6, backgroundColor: '#0d1117' },
-  statusTime: { color: '#fff', fontSize: 9, fontWeight: '700' },
+  phone: { width: 200, backgroundColor: '#fff', borderRadius: 24, overflow: 'hidden', shadowColor: '#0F172A', shadowOpacity: 0.16, shadowRadius: 20, shadowOffset: { width: 0, height: 8 }, elevation: 12 },
+  statusBar: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 6, backgroundColor: '#fff' },
+  statusTime: { color: '#111827', fontSize: 9, fontWeight: '700' },
   statusIcons: { flexDirection: 'row', gap: 4, alignItems: 'center' },
-  waHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#1a1a2e' },
+  waHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 8, backgroundColor: '#F3F4F6' },
   storeAvatar: { width: 26, height: 26, borderRadius: 13, backgroundColor: '#25D366', alignItems: 'center', justifyContent: 'center' },
   storeAvatarText: { color: '#fff', fontSize: 8, fontWeight: '800' },
-  storeName: { color: '#fff', fontSize: 10, fontWeight: '700' },
-  storeTime: { color: 'rgba(255,255,255,0.5)', fontSize: 8 },
+  storeName: { color: '#111827', fontSize: 10, fontWeight: '700' },
+  storeTime: { color: '#6B7280', fontSize: 8 },
   statusCard: { height: 160, position: 'relative' },
   productImg: { width: '100%', height: '100%' },
   imgOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 10 },
@@ -108,23 +107,24 @@ const s1 = StyleSheet.create({
   productName: { color: '#fff', fontSize: 12, fontWeight: '800' },
   productPrice: { color: '#fff', fontSize: 10, fontWeight: '600' },
   deliveryTag: { color: 'rgba(255,255,255,0.7)', fontSize: 7, marginTop: 2 },
-  shopNowWrap: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 10, backgroundColor: '#0d1117' },
+  shopNowWrap: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 12, paddingVertical: 10, backgroundColor: '#fff' },
   shopNowBtn: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#25D366', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
   shopNowText: { color: '#fff', fontSize: 10, fontWeight: '700' },
-  replyText: { color: 'rgba(255,255,255,0.5)', fontSize: 9 },
+  replyText: { color: '#6B7280', fontSize: 9 },
   platformsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, justifyContent: 'center', paddingHorizontal: 20 },
-  platformPill: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: 'rgba(255,255,255,0.08)', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
-  platformIcon: { width: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
-  platformLabel: { color: 'rgba(255,255,255,0.85)', fontSize: 11, fontWeight: '600' },
+  platformPill: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#F3F4F6', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
+  platformIcon: { width: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center', borderWidth: 1 },
+  platformImage: { width: 16, height: 16, borderRadius: 8 },
+  platformLabel: { color: '#374151', fontSize: 11, fontWeight: '600' },
 });
 
 // ── Slide 2: One Product. Every Platform. ──
 function Slide2() {
   const platforms = [
-    { label: 'WhatsApp', color: '#25D366', emoji: '💬' },
-    { label: 'Instagram', color: '#E1306C', emoji: '📸' },
-    { label: 'Facebook', color: '#1877F2', emoji: '👍' },
-    { label: 'TikTok', color: '#010101', emoji: '🎵' },
+    { label: 'WhatsApp', color: '#25D366', source: SOCIAL_LOGOS.whatsapp },
+    { label: 'Instagram', color: '#E1306C', source: SOCIAL_LOGOS.instagram },
+    { label: 'Facebook', color: '#1877F2', source: SOCIAL_LOGOS.facebook },
+    { label: 'TikTok', color: '#010101', source: SOCIAL_LOGOS.tiktok },
   ];
   return (
     <View style={s2.root}>
@@ -148,7 +148,7 @@ function Slide2() {
         {platforms.map((p) => (
           <View key={p.label} style={s2.platformCard}>
             <View style={[s2.platformCircle, { backgroundColor: p.color }]}>
-              <Text style={{ fontSize: 20 }}>{p.emoji}</Text>
+              <Image source={p.source} style={{ width: 28, height: 28, borderRadius: 14 }} resizeMode="contain" />
             </View>
             <Text style={s2.platformName}>{p.label}</Text>
           </View>
@@ -169,7 +169,7 @@ const s2 = StyleSheet.create({
   platformGrid: { flexDirection: 'row', gap: 20 },
   platformCard: { alignItems: 'center', gap: 6 },
   platformCircle: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
-  platformName: { color: 'rgba(255,255,255,0.85)', fontSize: 11, fontWeight: '600' },
+  platformName: { color: '#374151', fontSize: 11, fontWeight: '600' },
 });
 
 // ── Slide 3: Your Business Never Sleeps (AI chat demo) ──
@@ -336,28 +336,28 @@ const SLIDES = [
     id: '1',
     title: 'Turn Every Status Into\na Store',
     subtitle: 'Create once, publish everywhere and sell 24/7.',
-    bgColors: ['#0d1117', '#1a1a2e'] as [string, string],
+    bgColors: ['#F8FAFC', '#FFFFFF'] as [string, string],
     component: Slide1,
   },
   {
     id: '2',
     title: 'One Product.\nEvery Platform.',
     subtitle: 'Publish to WhatsApp, Instagram, Facebook, TikTok and more in one tap.',
-    bgColors: ['#1a1a2e', '#0d2340'] as [string, string],
+    bgColors: ['#FFFFFF', '#F0FDF4'] as [string, string],
     component: Slide2,
   },
   {
     id: '3',
     title: 'Your Business\nNever Sleeps',
     subtitle: 'Our AI Assistant chats, negotiates, and closes sales while you focus on growth.',
-    bgColors: ['#0d1117', '#1a0d2e'] as [string, string],
+    bgColors: ['#F8FAFC', '#F5F3FF'] as [string, string],
     component: Slide3,
   },
   {
     id: '4',
     title: 'Grow Your Business\nEvery Day',
     subtitle: 'Track performance, understand your customers, and grow revenue faster.',
-    bgColors: ['#0d1a0d', '#0d2e14'] as [string, string],
+    bgColors: ['#F0FDF4', '#FFFFFF'] as [string, string],
     component: Slide4,
   },
 ];
@@ -514,8 +514,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   logoMarkText: { color: '#fff', fontWeight: '800', fontSize: 16 },
-  brandText: { fontSize: 18, color: '#fff' },
-  skipText: { fontSize: 14, color: 'rgba(255,255,255,0.6)' },
+  brandText: { fontSize: 18, color: '#111827' },
+  skipText: { fontSize: 14, color: '#6B7280' },
   slide: { paddingHorizontal: 20 },
   visualArea: {
     flex: 1,
@@ -524,22 +524,22 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   bottom: { paddingHorizontal: 20, gap: 16 },
-  slideTitle: { fontSize: 26, color: '#fff', lineHeight: 34 },
-  slideSubtitle: { fontSize: 15, color: 'rgba(255,255,255,0.65)', lineHeight: 22 },
+  slideTitle: { fontSize: 26, color: '#111827', lineHeight: 34 },
+  slideSubtitle: { fontSize: 15, color: '#6B7280', lineHeight: 22 },
   dotsRow: { flexDirection: 'row', gap: 8 },
   dot: { height: 8, borderRadius: 4 },
   dotActive: { width: 24, backgroundColor: '#25D366' },
-  dotInactive: { width: 8, backgroundColor: 'rgba(255,255,255,0.25)' },
+  dotInactive: { width: 8, backgroundColor: '#D1D5DB' },
   navButtons: { flexDirection: 'row', gap: 12 },
   navSkipBtn: {
     flex: 1,
     paddingVertical: 14,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderColor: '#D1D5DB',
     alignItems: 'center',
   },
-  navSkipText: { fontSize: 15, color: 'rgba(255,255,255,0.7)' },
+  navSkipText: { fontSize: 15, color: '#4B5563' },
   navNextBtn: {
     flex: 2,
     flexDirection: 'row',
@@ -559,5 +559,5 @@ const styles = StyleSheet.create({
     backgroundColor: '#25D366',
   },
   getStartedText: { fontSize: 17, color: '#fff' },
-  signinLink: { fontSize: 14, textAlign: 'center', color: 'rgba(255,255,255,0.65)' },
+  signinLink: { fontSize: 14, textAlign: 'center', color: '#6B7280' },
 });
