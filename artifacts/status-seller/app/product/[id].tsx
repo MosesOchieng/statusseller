@@ -21,7 +21,7 @@ import Badge from '@/components/ui/Badge';
 import { PRODUCT_CATEGORIES } from '@/constants/mockData';
 import { formatCurrency, formatRelativeTime } from '@/utils/formatters';
 import { getImageSource } from '@/utils/imageSource';
-import { toPublicUrl } from '@/utils/links';
+import { getPublicCode, toPublicUrl } from '@/utils/links';
 import type { ProductStatus } from '@/types';
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -331,7 +331,7 @@ export default function ProductDetailScreen() {
               <View style={styles.linkActions}>
                 <TouchableOpacity
                   onPress={() => {
-                    const code = product.shopLink?.split('/').pop() ?? '';
+                    const code = getPublicCode(product.shopLink);
                     if (code) router.push(`/shop/${code}` as any);
                   }}
                   style={[styles.linkBtn, { backgroundColor: colors.card, borderRadius: 8, borderWidth: 1, borderColor: colors.primary }]}

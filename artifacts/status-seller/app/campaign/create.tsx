@@ -18,7 +18,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useColors } from '@/hooks/useColors';
 import { useApp } from '@/context/AppContext';
 import type { ImageAdjustments } from '@/types';
-import { toPublicUrl } from '@/utils/links';
 
 const CAMPAIGN_GOALS = ['New Arrival', 'Flash Sale', 'Weekend Offer', 'Clearance', 'Brand Awareness', 'Custom'] as const;
 const DEFAULT_IMAGE_ADJUSTMENTS: ImageAdjustments = { brightness: 0, contrast: 100, saturation: 100, warmth: 0 };
@@ -88,7 +87,7 @@ export default function CreateCampaignScreen() {
       removeBackground: false,
       effect: 'original',
       caption: selectedProduct
-        ? `Meet ${selectedProduct.title}. ${selectedProduct.description || 'Quality you can trust.'}\n\nShop now: ${toPublicUrl(selectedProduct.shopLink)}`
+        ? `Meet ${selectedProduct.title}. ${selectedProduct.description || 'Quality you can trust.'}`
         : 'Create a status that gets people shopping.',
     });
     router.push('/campaign/preview');

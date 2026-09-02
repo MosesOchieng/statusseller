@@ -159,7 +159,7 @@ export async function renderPosterToDataUrl(options: PosterExportOptions): Promi
     const filterWarmth = options.warmth > 0 ? ` sepia(${Math.min(options.warmth, 50) / 100})` : '';
     context.save();
     context.filter = `brightness(${100 + options.brightness}%) contrast(${options.contrast}%) saturate(${options.saturation}%)${filterWarmth}`;
-    context.drawImage(product, 110 + productRect.x, 270 + productRect.y, productRect.width, productRect.height);
+    context.drawImage(product, 110 + productRect.x, 350 + productRect.y, productRect.width, productRect.height);
     context.restore();
   }
 
@@ -183,25 +183,28 @@ export async function renderPosterToDataUrl(options: PosterExportOptions): Promi
 
   context.fillStyle = '#ffffff';
   context.font = '700 34px Inter, Arial, sans-serif';
-  context.fillText(options.badge, 70, 260);
+  context.fillText(options.badge, 70, 250);
   context.font = '700 64px Inter, Arial, sans-serif';
   const title = options.title.length > 24 ? `${options.title.slice(0, 23)}…` : options.title;
-  context.fillText(title.toUpperCase(), 70, 1270);
+  context.fillText(title.toUpperCase(), 70, 315);
   context.fillStyle = '#25D366';
   context.font = '700 48px Inter, Arial, sans-serif';
-  context.fillText(options.price, 70, 1350);
+  context.fillText(options.price, 70, 1320);
+  context.fillStyle = 'rgba(255,255,255,0.78)';
+  context.font = '400 28px Inter, Arial, sans-serif';
+  context.fillText('Free Delivery Nairobi', 70, 1360);
 
   if (options.showLink) {
-    context.fillStyle = 'rgba(0,0,0,0.70)';
-    context.roundRect(70, 1740, 940, 76, 22);
-    context.fill();
     context.fillStyle = '#ffffff';
-    context.font = '600 25px Inter, Arial, sans-serif';
-    context.fillText(options.link, 102, 1788);
+    context.roundRect(70, 1420, 940, 100, 28);
+    context.fill();
+    context.fillStyle = '#111827';
+    context.font = '700 32px Inter, Arial, sans-serif';
+    context.fillText('Shop Now', 445, 1483);
   }
 
-  context.fillStyle = '#ffffff';
+  context.fillStyle = 'rgba(255,255,255,0.78)';
   context.font = '600 26px Inter, Arial, sans-serif';
-  context.fillText('Tap the link in the caption to shop', 70, 1850);
+  context.fillText('Tap the link in the caption to shop', 70, 1810);
   return canvas.toDataURL('image/jpeg', 0.92);
 }

@@ -24,7 +24,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import ProductOverlay from '@/components/ui/ProductOverlay';
 import { BRAND_ASSETS, CAMPAIGN_BACKGROUNDS } from '@/constants/localImages';
 import type { ImageAdjustments, PosterEffect } from '@/types';
-import { toPublicUrl } from '@/utils/links';
+import { removeShopLinkLine, toPublicUrl } from '@/utils/links';
 import { removeImageBackground, renderPosterToDataUrl } from '@/utils/imageProcessing';
 
 const PLATFORMS = ['WhatsApp', 'Instagram', 'TikTok', 'More'] as const;
@@ -64,7 +64,7 @@ export default function CampaignPreviewScreen() {
   const { products, campaignDraft, setCampaignDraft } = useApp();
   const [activePlatform, setActivePlatform] = useState<string>('WhatsApp');
   const [isEditing, setIsEditing] = useState(false);
-  const [caption, setCaption] = useState(campaignDraft?.caption ?? SAMPLE_CAPTION);
+  const [caption, setCaption] = useState(removeShopLinkLine(campaignDraft?.caption ?? SAMPLE_CAPTION));
   const [imageFit, setImageFit] = useState<'cover' | 'contain'>(campaignDraft?.imageFit ?? 'cover');
   const [background, setBackground] = useState(campaignDraft?.background ?? '#1A1A2E');
   const [overlayVisible, setOverlayVisible] = useState(false);
@@ -249,14 +249,19 @@ export default function CampaignPreviewScreen() {
             />
             {/* Product visual */}
             <View style={styles.productVisual}>
-              {showLogoOnImage && (
-                <Image source={getImageSource(BRAND_ASSETS.logo)} style={styles.posterLogo} resizeMode="contain" />
-              )}
-              <View style={[styles.productBadge, { backgroundColor: '#25D366' }]}>
-                <Text style={[styles.productBadgeText, { fontFamily: 'Inter_600SemiBold' }]}>
-                  {campaignDraft?.badge ?? 'SHOP NOW'}
-                </Text>
+              <View style={styles.posterTopRow}>
+                <View style={[styles.productBadge, { backgroundColor: '#25D366' }]}>
+                  <Text style={[styles.productBadgeText, { fontFamily: 'Inter_600SemiBold' }]}>
+                    {campaignDraft?.badge ?? 'NEW ARRIVAL'}
+                  </Text>
+                </View>
+                {showLogoOnImage && (
+                  <Image source={getImageSource(BRAND_ASSETS.logo)} style={styles.posterLogo} resizeMode="contain" />
+                )}
               </View>
+              <Text style={[styles.posterTitle, { fontFamily: 'Inter_700Bold' }]}>
+                {product?.title?.toUpperCase() ?? 'YOUR PRODUCT'}
+              </Text>
               <View style={styles.imageFrame}>
                 {posterImage ? (
                   <Image
@@ -289,29 +294,25 @@ export default function CampaignPreviewScreen() {
                     ]}
                   />
                 )}
-                {showLinkOnImage && (
-                  <View style={styles.linkOverlay}>
-                    <Feather name="link" size={11} color="#fff" />
-                    <Text style={styles.linkOverlayText} numberOfLines={1}>{publicLink}</Text>
-                  </View>
-                )}
               </View>
-              <View style={styles.productInfoRow}>
-                <View style={[styles.storePill, { backgroundColor: '#25D366' }]}>
-                  <Text style={[styles.storePillText, { fontFamily: 'Inter_600SemiBold' }]}>
-                    {product ? 'Your shop' : 'StatusSeller'}
-                  </Text>
-                </View>
+              <View style={styles.posterPriceBlock}>
+                <Text style={[styles.posterPrice, { fontFamily: 'Inter_700Bold' }]}>
+                  KSh {product?.price?.toLocaleString() ?? '6,000'}
+                </Text>
+                <Text style={[styles.posterDelivery, { fontFamily: 'Inter_400Regular' }]}>
+                  Free Delivery Nairobi
+                </Text>
+              </View>
+              {showLinkOnImage && (
                 <TouchableOpacity
                   onPress={() => setOverlayVisible(true)}
-                  style={[styles.shopNowBtn, { backgroundColor: '#25D366' }]}
+                  style={styles.shopNowPosterBtn}
                   accessibilityLabel="Preview shop now popup"
                 >
-                  <Text style={[styles.shopNowText, { fontFamily: 'Inter_700Bold' }]}>
-                    KSh {product?.price?.toLocaleString() ?? '6,000'}
-                  </Text>
+                  <Feather name="shopping-bag" size={15} color="#111827" />
+                  <Text style={[styles.shopNowPosterText, { fontFamily: 'Inter_700Bold' }]}>Shop Now</Text>
                 </TouchableOpacity>
-              </View>
+              )}
             </View>
           </View>
         </View>
@@ -504,10 +505,11 @@ export default function CampaignPreviewScreen() {
             </View>
             <Text style={[styles.controlLabel, { color: colors.mutedForeground, fontFamily: 'Inter_600SemiBold' }]}>CAPTION</Text>
             <TextInput
-              value={caption}
+              value={removeShopLinkLine(caption)}
               onChangeText={(value) => {
-                setCaption(value);
-                saveDraftChange({ caption: value });
+                const cleanCaption = removeShopLinkLine(value);
+                setCaption(cleanCaption);
+                saveDraftChange({ caption: cleanCaption });
               }}
               multiline
               placeholder="Write a caption for your status"
@@ -539,8 +541,19 @@ export default function CampaignPreviewScreen() {
             </TouchableOpacity>
           </View>
           <Text style={[styles.captionText, { color: colors.foreground, fontFamily: 'Inter_400Regular' }]}>
-            {caption}
+            {removeShopLinkLine(caption)}
           </Text>
+          {publicLink ? (
+            <TouchableOpacity
+              onPress={() => setOverlayVisible(true)}
+              style={[styles.captionLinkRow, { borderTopColor: colors.border }]}
+            >
+              <Feather name="link" size={14} color={colors.primary} />
+              <Text style={[styles.captionLinkText, { color: colors.primary, fontFamily: 'Inter_600SemiBold' }]}>
+                Shop now: {publicLink}
+              </Text>
+            </TouchableOpacity>
+          ) : null}
         </View>
       </ScrollView>
 
@@ -587,10 +600,12 @@ const styles = StyleSheet.create({
   previewCard: { marginBottom: 14, overflow: 'hidden' },
   previewGradient: { padding: 20, borderRadius: 20, overflow: 'hidden', position: 'relative' },
   backgroundImage: { ...StyleSheet.absoluteFillObject },
-  posterLogo: { width: 112, height: 46, alignSelf: 'flex-end', marginBottom: -2 },
+  posterTopRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' },
+  posterLogo: { width: 112, height: 46 },
   productVisual: { alignItems: 'center', gap: 12 },
   productBadge: { paddingHorizontal: 12, paddingVertical: 4, borderRadius: 20 },
   productBadgeText: { fontSize: 11, color: '#fff' },
+  posterTitle: { alignSelf: 'flex-start', color: '#fff', fontSize: 22, lineHeight: 28, maxWidth: '90%' },
   productImagePlaceholder: {
     width: '100%',
     height: 160,
@@ -600,20 +615,20 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   imageFrame: { width: '100%', height: 160, borderRadius: 16, overflow: 'hidden', position: 'relative' },
-  linkOverlay: { position: 'absolute', bottom: 8, left: 8, right: 8, flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 8, paddingVertical: 5, borderRadius: 8, backgroundColor: 'rgba(0,0,0,0.62)' },
-  linkOverlayText: { flex: 1, color: '#fff', fontSize: 10, fontWeight: '600' },
   productImageText: { fontSize: 20, textAlign: 'center', lineHeight: 28 },
-  productInfoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' },
-  storePill: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
-  storePillText: { fontSize: 12, color: '#fff' },
-  shopNowBtn: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
-  shopNowText: { fontSize: 14, color: '#fff' },
+  posterPriceBlock: { alignSelf: 'flex-start', gap: 2 },
+  posterPrice: { fontSize: 22, color: '#25D366' },
+  posterDelivery: { fontSize: 12, color: 'rgba(255,255,255,0.75)' },
+  shopNowPosterBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7, width: '100%', paddingVertical: 13, borderRadius: 14, backgroundColor: '#fff' },
+  shopNowPosterText: { fontSize: 15, color: '#111827' },
   captionsCard: { borderRadius: 16, borderWidth: 1, padding: 16, marginBottom: 16 },
   captionsHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   aiChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 20 },
   aiChipText: { fontSize: 12 },
   editCaptions: { fontSize: 13 },
   captionText: { fontSize: 14, lineHeight: 22 },
+  captionLinkRow: { flexDirection: 'row', alignItems: 'center', gap: 8, borderTopWidth: 1, paddingTop: 12, marginTop: 12 },
+  captionLinkText: { flex: 1, fontSize: 13, lineHeight: 19 },
   editorCard: { borderRadius: 16, borderWidth: 1, padding: 16, marginBottom: 16, gap: 10 },
   editorHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 2 },
   editorTitle: { fontSize: 16 },

@@ -24,6 +24,7 @@ import { router } from 'expo-router';
 import { useColors } from '@/hooks/useColors';
 import type { Product } from '@/types';
 import { formatCurrency } from '@/utils/formatters';
+import { getPublicCode, toPublicUrl } from '@/utils/links';
 
 interface Props {
   product: Product | null;
@@ -92,7 +93,7 @@ export default function ProductOverlay({ product, visible, onClose }: Props) {
     }
     onClose();
     // Extract the link code from shopLink (e.g. "statusseller.app/p/ABC123" → "ABC123")
-    const code = product?.shopLink?.split('/').pop() ?? '';
+    const code = getPublicCode(product?.shopLink);
     if (code) {
       router.push(`/shop/${code}` as any);
     }
@@ -102,7 +103,7 @@ export default function ProductOverlay({ product, visible, onClose }: Props) {
     if (!product) return;
     try {
       await Share.share({
-        message: `Shop ${product.title} for ${formatCurrency(product.price, product.currency)} 🛍️\nhttps://${product.shopLink}`,
+        message: `Shop ${product.title} for ${formatCurrency(product.price, product.currency)} 🛍️\n${toPublicUrl(product.shopLink)}`,
         title: product.title,
       });
     } catch {

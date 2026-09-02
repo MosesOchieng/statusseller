@@ -16,7 +16,7 @@ import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useColors } from '@/hooks/useColors';
 import { useApp } from '@/context/AppContext';
-import { toPublicUrl } from '@/utils/links';
+import { buildShareCaption, toPublicUrl } from '@/utils/links';
 
 export default function WhatsAppPostScreen() {
   const colors = useColors();
@@ -28,12 +28,21 @@ export default function WhatsAppPostScreen() {
   const posterImage = campaignDraft?.imageUri ?? product?.images?.[0];
   const link = toPublicUrl(product?.shopLink, '');
   const showLinkOnImage = campaignDraft?.showLinkOnImage ?? true;
+  const shareCaption = buildShareCaption(campaignDraft?.caption ?? `Shop ${product?.title ?? 'this product'}`, link);
+  const resolvedPosterUri = typeof posterImage === 'string'
+    ? posterImage
+    : typeof posterImage === 'number'
+      ? Image.resolveAssetSource(posterImage)?.uri ?? ''
+      : posterImage && typeof posterImage === 'object' && 'uri' in posterImage
+        ? String((posterImage as { uri?: unknown }).uri ?? '')
+        : '';
 
   const handlePost = async () => {
     try {
       await Share.share({
         title: `${store?.name ?? 'Your shop'} status`,
-        message: `${campaignDraft?.caption ?? `Shop ${product?.title ?? 'this product'}`}\n\nShop now: ${link}`,
+        message: shareCaption,
+        ...(resolvedPosterUri ? { url: resolvedPosterUri } : {}),
       });
     } catch {
       // The native share sheet was dismissed.
@@ -80,6 +89,9 @@ export default function WhatsAppPostScreen() {
 
           {/* Product card */}
           <View style={[styles.waProductCard, { backgroundColor: '#1F2937' }]}>
+            <Text style={[styles.waPosterTitle, { fontFamily: 'Inter_700Bold' }]}>
+              {product?.title?.toUpperCase() ?? 'NIKE AIR FORCE 1'}
+            </Text>
             <View style={styles.waImageFrame}>
               {posterImage ? (
                 <Image
@@ -94,19 +106,16 @@ export default function WhatsAppPostScreen() {
                   </Text>
                 </View>
               )}
-              {showLinkOnImage && link ? (
-                <View style={styles.waLinkOverlay}>
-                  <Feather name="link" size={11} color="#fff" />
-                  <Text style={styles.waLinkText} numberOfLines={1}>{link}</Text>
-                </View>
-              ) : null}
             </View>
             <View style={styles.waProductInfo}>
-              <Text style={[styles.waProductPrice, { color: '#25D366', fontFamily: 'Inter_700Bold' }]}>
-                KSh {product?.price?.toLocaleString() ?? '6,000'}
-              </Text>
-              <TouchableOpacity style={[styles.waShopBtn, { backgroundColor: '#25D366' }]}>
-                <Text style={[styles.waShopText, { fontFamily: 'Inter_700Bold', color: '#fff' }]}>Shop Now</Text>
+              <View>
+                <Text style={[styles.waProductPrice, { color: '#25D366', fontFamily: 'Inter_700Bold' }]}>
+                  KSh {product?.price?.toLocaleString() ?? '6,000'}
+                </Text>
+                <Text style={styles.waDelivery}>Free Delivery Nairobi</Text>
+              </View>
+              <TouchableOpacity style={[styles.waShopBtn, { backgroundColor: '#fff' }]}>
+                <Text style={[styles.waShopText, { fontFamily: 'Inter_700Bold', color: '#111827' }]}>Shop Now</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -115,7 +124,7 @@ export default function WhatsAppPostScreen() {
           <View style={styles.waCaptionRow}>
               <TextInput
               style={[styles.waCaptionInput, { color: 'rgba(255,255,255,0.6)', fontFamily: 'Inter_400Regular' }]}
-                defaultValue={campaignDraft?.caption}
+                defaultValue={shareCaption}
                 placeholder="Add a caption..."
               placeholderTextColor="rgba(255,255,255,0.3)"
             />
@@ -180,14 +189,14 @@ const styles = StyleSheet.create({
   waTime: { fontSize: 12 },
   waStatusName: { paddingHorizontal: 16, marginBottom: 12 },
   waName: { fontSize: 16 },
-  waProductCard: { margin: 12, borderRadius: 16, overflow: 'hidden' },
+  waProductCard: { margin: 12, borderRadius: 16, overflow: 'hidden', paddingTop: 16 },
+  waPosterTitle: { color: '#fff', fontSize: 18, lineHeight: 23, paddingHorizontal: 14, paddingBottom: 12 },
   waProductImage: { height: 180, width: '100%', alignItems: 'center', justifyContent: 'center' },
   waImageFrame: { position: 'relative' },
-  waLinkOverlay: { position: 'absolute', bottom: 8, left: 8, right: 8, flexDirection: 'row', alignItems: 'center', gap: 5, paddingHorizontal: 8, paddingVertical: 5, borderRadius: 8, backgroundColor: 'rgba(0,0,0,0.62)' },
-  waLinkText: { flex: 1, color: '#fff', fontSize: 10, fontWeight: '600' },
   waProductTitle: { fontSize: 20, textAlign: 'center', lineHeight: 28 },
   waProductInfo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 14 },
   waProductPrice: { fontSize: 20 },
+  waDelivery: { color: 'rgba(255,255,255,0.65)', fontSize: 11, marginTop: 2 },
   waShopBtn: { paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20 },
   waShopText: { fontSize: 14 },
   waCaptionRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, gap: 10 },
