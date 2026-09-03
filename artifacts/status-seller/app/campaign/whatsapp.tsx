@@ -1,6 +1,9 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import {
+  Alert,
+  ActivityIndicator,
   Image,
+  ImageSourcePropType,
   Platform,
   ScrollView,
   Share,
@@ -17,11 +20,17 @@ import { router } from 'expo-router';
 import { useColors } from '@/hooks/useColors';
 import { useApp } from '@/context/AppContext';
 import { buildShareCaption, toPublicUrl } from '@/utils/links';
+import { BRAND_ASSETS, CAMPAIGN_BACKGROUNDS } from '@/constants/localImages';
+import type { ImageAdjustments } from '@/types';
+import SharePosterCard from '@/components/campaign/SharePosterCard';
+import { sharePoster } from '@/utils/sharePoster';
 
 export default function WhatsAppPostScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { products, store, campaignDraft } = useApp();
+  const posterRef = useRef<View>(null);
+  const [isSharing, setIsSharing] = useState(false);
   const topInset = Platform.OS === 'web' ? 0 : insets.top;
 
   const product = products.find((p) => p.id === campaignDraft?.productId) ?? products.find((p) => p.status === 'active') ?? products[0];
@@ -29,23 +38,34 @@ export default function WhatsAppPostScreen() {
   const link = toPublicUrl(product?.shopLink, '');
   const showLinkOnImage = campaignDraft?.showLinkOnImage ?? true;
   const shareCaption = buildShareCaption(campaignDraft?.caption ?? `Shop ${product?.title ?? 'this product'}`, link);
-  const resolvedPosterUri = typeof posterImage === 'string'
-    ? posterImage
-    : typeof posterImage === 'number'
-      ? Image.resolveAssetSource(posterImage)?.uri ?? ''
-      : posterImage && typeof posterImage === 'object' && 'uri' in posterImage
-        ? String((posterImage as { uri?: unknown }).uri ?? '')
-        : '';
+  const backgroundImage = campaignDraft?.backgroundImage;
+  const backgroundSource: ImageSourcePropType | undefined = backgroundImage === 'pink'
+    ? CAMPAIGN_BACKGROUNDS.pink
+    : backgroundImage === 'mint'
+      ? CAMPAIGN_BACKGROUNDS.mint
+      : backgroundImage === 'lilac'
+        ? CAMPAIGN_BACKGROUNDS.lilac
+        : backgroundImage
+          ? { uri: backgroundImage }
+          : undefined;
+  const adjustments: ImageAdjustments = campaignDraft?.imageAdjustments ?? { brightness: 0, contrast: 100, saturation: 100, warmth: 0 };
+  const fileName = `${(product?.title ?? 'statusseller-poster').replace(/[^a-z0-9]+/gi, '-').toLowerCase()}.jpg`;
 
   const handlePost = async () => {
+    setIsSharing(true);
     try {
-      await Share.share({
-        title: `${store?.name ?? 'Your shop'} status`,
-        message: shareCaption,
-        ...(resolvedPosterUri ? { url: resolvedPosterUri } : {}),
+      await sharePoster({
+        viewRef: posterRef,
+        fileName,
+        caption: shareCaption,
+        title: `${store?.name ?? 'Your shop'} WhatsApp status`,
       });
-    } catch {
-      // The native share sheet was dismissed.
+    } catch (error) {
+      if (error instanceof Error && !error.message.includes('dismiss')) {
+        Alert.alert('Poster ready', error.message);
+      }
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -134,6 +154,26 @@ export default function WhatsAppPostScreen() {
           </View>
         </View>
 
+        <View style={styles.hiddenPoster} pointerEvents="none">
+          <SharePosterCard
+            posterImage={posterImage}
+            backgroundSource={backgroundSource}
+            backgroundColor={campaignDraft?.background ?? '#1A1A2E'}
+            logoSource={BRAND_ASSETS.logo}
+            product={product}
+            title={product?.title ?? 'Your product'}
+            price={`KSh ${product?.price?.toLocaleString() ?? '6,000'}`}
+            badge={campaignDraft?.badge ?? 'NEW ARRIVAL'}
+            link={link}
+            showLogo={campaignDraft?.showLogoOnImage ?? true}
+            showLink={showLinkOnImage}
+            fit={campaignDraft?.imageFit ?? 'cover'}
+            adjustments={adjustments}
+            effect={campaignDraft?.effect ?? 'original'}
+            ref={posterRef}
+          />
+        </View>
+
         {/* Info card */}
         <View style={[styles.infoCard, { backgroundColor: colors.card, borderColor: colors.border, marginHorizontal: 16 }]}>
           <Feather name="info" size={16} color={colors.primary} />
@@ -160,10 +200,13 @@ export default function WhatsAppPostScreen() {
       <View style={[styles.footer, { paddingBottom: insets.bottom + 16, borderTopColor: colors.border, backgroundColor: colors.background }]}>
         <TouchableOpacity
           onPress={handlePost}
+          disabled={isSharing}
           style={[styles.postBtn, { backgroundColor: '#25D366' }]}
         >
-          <Feather name="message-circle" size={18} color="#fff" />
-          <Text style={[styles.postText, { fontFamily: 'Inter_700Bold' }]}>Post to WhatsApp Status</Text>
+          {isSharing ? <ActivityIndicator color="#fff" /> : <Feather name="message-circle" size={18} color="#fff" />}
+          <Text style={[styles.postText, { fontFamily: 'Inter_700Bold' }]}>
+            {isSharing ? 'Preparing poster…' : 'Post image to WhatsApp Status'}
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -211,4 +254,5 @@ const styles = StyleSheet.create({
   footer: { paddingHorizontal: 16, paddingTop: 12, borderTopWidth: 1 },
   postBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 16, borderRadius: 16, gap: 10 },
   postText: { fontSize: 16, color: '#fff' },
+  hiddenPoster: { position: 'absolute', left: -10000, top: 0, opacity: 0.01 },
 });
