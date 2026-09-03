@@ -37,4 +37,8 @@ export const SPLASH_IMAGES = {
   design1: require('../assets/images/splash/design1.png'),
   design2: require('../assets/images/splash/design2.png'),
   design3: require('../assets/images/splash/design3.png'),
+  slide1: require('../assets/images/splash/slide1.jpg'),
+  slide2: require('../assets/images/splash/slide2.jpg'),
+  slide3: require('../assets/images/splash/slide3.jpg'),
+  slide4: require('../assets/images/splash/slide4.jpg'),
 } as const;

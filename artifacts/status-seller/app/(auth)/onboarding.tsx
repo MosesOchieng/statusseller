@@ -14,7 +14,7 @@ import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useColors } from '@/hooks/useColors';
 import { LinearGradient } from 'expo-linear-gradient';
-import { PRODUCT_IMAGES, SOCIAL_LOGOS } from '@/constants/localImages';
+import { PRODUCT_IMAGES, SOCIAL_LOGOS, SPLASH_IMAGES } from '@/constants/localImages';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -337,6 +337,7 @@ const SLIDES = [
     title: 'Turn Every Status Into\na Store',
     subtitle: 'Create once, publish everywhere and sell 24/7.',
     bgColors: ['#F8FAFC', '#FFFFFF'] as [string, string],
+    image: SPLASH_IMAGES.slide1,
     component: Slide1,
   },
   {
@@ -344,6 +345,7 @@ const SLIDES = [
     title: 'One Product.\nEvery Platform.',
     subtitle: 'Publish to WhatsApp, Instagram, Facebook, TikTok and more in one tap.',
     bgColors: ['#FFFFFF', '#F0FDF4'] as [string, string],
+    image: SPLASH_IMAGES.slide2,
     component: Slide2,
   },
   {
@@ -351,6 +353,7 @@ const SLIDES = [
     title: 'Your Business\nNever Sleeps',
     subtitle: 'Our AI Assistant chats, negotiates, and closes sales while you focus on growth.',
     bgColors: ['#F8FAFC', '#F5F3FF'] as [string, string],
+    image: SPLASH_IMAGES.slide3,
     component: Slide3,
   },
   {
@@ -358,6 +361,7 @@ const SLIDES = [
     title: 'Grow Your Business\nEvery Day',
     subtitle: 'Track performance, understand your customers, and grow revenue faster.',
     bgColors: ['#F0FDF4', '#FFFFFF'] as [string, string],
+    image: SPLASH_IMAGES.slide4,
     component: Slide4,
   },
 ];
@@ -427,7 +431,7 @@ export default function OnboardingScreen() {
             <View style={[styles.slide, { width: SCREEN_WIDTH }]}>
               {/* Visual area */}
               <View style={styles.visualArea}>
-                <SlideComponent />
+               <Image source={item.image} style={styles.generatedSplash} resizeMode="cover" />
               </View>
             </View>
           );
@@ -522,6 +526,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-end',
     paddingBottom: 8,
+  },
+  generatedSplash: {
+    width: '100%',
+    maxWidth: 350,
+    height: 330,
+    borderRadius: 28,
+    shadowColor: '#0F172A',
+    shadowOpacity: 0.16,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 10,
   },
   bottom: { paddingHorizontal: 20, gap: 16 },
   slideTitle: { fontSize: 26, color: '#111827', lineHeight: 34 },

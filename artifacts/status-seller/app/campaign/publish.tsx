@@ -47,7 +47,13 @@ export default function PublishCampaignScreen() {
   };
 
   const handlePublish = () => {
-    router.push('/campaign/whatsapp');
+    if (selected.has('whatsapp_status')) {
+      router.push('/campaign/whatsapp');
+      return;
+    }
+    if (selected.has('instagram_story') || selected.has('instagram_feed')) {
+      router.push('/campaign/instagram' as any);
+    }
   };
 
   return (
@@ -116,6 +122,7 @@ export default function PublishCampaignScreen() {
         </Text>
         <TouchableOpacity
           onPress={handlePublish}
+          disabled={selected.size === 0}
           style={[styles.publishBtn, { backgroundColor: selected.size > 0 ? colors.primary : colors.muted }]}
         >
           <Feather name="send" size={18} color={selected.size > 0 ? '#fff' : colors.mutedForeground} />

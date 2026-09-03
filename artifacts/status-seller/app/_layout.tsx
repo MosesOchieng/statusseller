@@ -37,6 +37,7 @@ function RootLayoutNav() {
       <Stack.Screen name="campaign/preview" />
       <Stack.Screen name="campaign/publish" />
       <Stack.Screen name="campaign/whatsapp" />
+      <Stack.Screen name="campaign/instagram" />
       <Stack.Screen name="p/[code]" />
       <Stack.Screen name="shop/[code]" options={{ presentation: 'modal' }} />
     </Stack>

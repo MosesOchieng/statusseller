@@ -63,7 +63,7 @@ export default function CampaignPreviewScreen() {
   const insets = useSafeAreaInsets();
   const { products, campaignDraft, setCampaignDraft } = useApp();
   const [activePlatform, setActivePlatform] = useState<string>('WhatsApp');
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(true);
   const [caption, setCaption] = useState(removeShopLinkLine(campaignDraft?.caption ?? SAMPLE_CAPTION));
   const [imageFit, setImageFit] = useState<'cover' | 'contain'>(campaignDraft?.imageFit ?? 'cover');
   const [background, setBackground] = useState(campaignDraft?.background ?? '#1A1A2E');
@@ -415,8 +415,8 @@ export default function CampaignPreviewScreen() {
                 <Text style={[styles.cutoutTitle, { color: colors.foreground, fontFamily: 'Inter_600SemiBold' }]}>
                   {backgroundRemoved ? 'Product cutout ready' : 'Remove photo background'}
                 </Text>
-                <Text style={[styles.editorSub, { color: colors.mutedForeground, fontFamily: 'Inter_400Regular' }]}>
-                  {backgroundRemoved ? 'Your product is blended into the selected design.' : 'Keep the product and blend it into your design.'}
+                 <Text style={[styles.editorSub, { color: colors.mutedForeground, fontFamily: 'Inter_400Regular' }]}>
+                   {backgroundRemoved ? 'Your product is blended into the selected design.' : 'Keep the original background or remove it to blend into the selected design.'}
                 </Text>
               </View>
               <TouchableOpacity

@@ -1,8 +1,9 @@
 import { Platform } from 'react-native';
+import type React from 'react';
 import * as Sharing from 'expo-sharing';
 import { captureRef } from 'react-native-view-shot';
 
-type PosterViewRef = { current: unknown };
+type PosterViewRef = React.RefObject<any>;
 
 type SharePosterOptions = {
   viewRef: PosterViewRef;

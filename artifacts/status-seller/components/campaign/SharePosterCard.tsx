@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, ImageSourcePropType, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
+import { Image, ImageSourcePropType, Platform, StyleProp, StyleSheet, Text, View, ViewStyle } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getImageSource } from '@/utils/imageSource';
@@ -38,9 +38,11 @@ const SharePosterCard = React.forwardRef<View, SharePosterCardProps>(function Sh
   adjustments,
   style,
 }, ref) {
-  const imageFilter = {
-    filter: `brightness(${100 + adjustments.brightness}%) contrast(${adjustments.contrast}%) saturate(${adjustments.saturation}%) sepia(${Math.max(adjustments.warmth, 0) / 100})`,
-  } as any;
+  const imageFilter = Platform.OS === 'web'
+    ? ({
+        filter: `brightness(${100 + adjustments.brightness}%) contrast(${adjustments.contrast}%) saturate(${adjustments.saturation}%) sepia(${Math.max(adjustments.warmth, 0) / 100})`,
+      } as any)
+    : undefined;
 
   return (
     <View
@@ -93,7 +95,7 @@ const SharePosterCard = React.forwardRef<View, SharePosterCardProps>(function Sh
           </View>
         )}
 
-        {link ? (
+        {showLink && link ? (
           <Text style={styles.link} numberOfLines={1}>
             Shop now: {link}
           </Text>

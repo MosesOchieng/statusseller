@@ -2,18 +2,15 @@ import React, { useRef, useState } from 'react';
 import {
   Alert,
   ActivityIndicator,
-  Image,
   ImageSourcePropType,
   Platform,
   ScrollView,
-  Share,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { getImageSource } from '@/utils/imageSource';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -107,55 +104,10 @@ export default function WhatsAppPostScreen() {
             </Text>
           </View>
 
-          {/* Product card */}
-          <View style={[styles.waProductCard, { backgroundColor: '#1F2937' }]}>
-            <Text style={[styles.waPosterTitle, { fontFamily: 'Inter_700Bold' }]}>
-              {product?.title?.toUpperCase() ?? 'NIKE AIR FORCE 1'}
-            </Text>
-            <View style={styles.waImageFrame}>
-              {posterImage ? (
-                <Image
-                  source={getImageSource(posterImage)}
-                  style={styles.waProductImage}
-                  resizeMode="cover"
-                />
-              ) : (
-                <View style={[styles.waProductImage, { backgroundColor: '#374151', alignItems: 'center', justifyContent: 'center' }]}>
-                  <Text style={[styles.waProductTitle, { color: '#fff', fontFamily: 'Inter_700Bold' }]}>
-                    {product?.title?.toUpperCase() ?? 'NIKE\nAIR FORCE 1'}
-                  </Text>
-                </View>
-              )}
-            </View>
-            <View style={styles.waProductInfo}>
-              <View>
-                <Text style={[styles.waProductPrice, { color: '#25D366', fontFamily: 'Inter_700Bold' }]}>
-                  KSh {product?.price?.toLocaleString() ?? '6,000'}
-                </Text>
-                <Text style={styles.waDelivery}>Free Delivery Nairobi</Text>
-              </View>
-              <TouchableOpacity style={[styles.waShopBtn, { backgroundColor: '#fff' }]}>
-                <Text style={[styles.waShopText, { fontFamily: 'Inter_700Bold', color: '#111827' }]}>Shop Now</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {/* Caption input */}
-          <View style={styles.waCaptionRow}>
-              <TextInput
-              style={[styles.waCaptionInput, { color: 'rgba(255,255,255,0.6)', fontFamily: 'Inter_400Regular' }]}
-                defaultValue={shareCaption}
-                placeholder="Add a caption..."
-              placeholderTextColor="rgba(255,255,255,0.3)"
-            />
-            <TouchableOpacity style={[styles.waSendBtn, { backgroundColor: '#25D366' }]}>
-              <Feather name="send" size={16} color="#fff" />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View style={styles.hiddenPoster} pointerEvents="none">
+          {/* This is the exact image card captured for the native share sheet. */}
           <SharePosterCard
+            ref={posterRef}
+            style={styles.posterCard}
             posterImage={posterImage}
             backgroundSource={backgroundSource}
             backgroundColor={campaignDraft?.background ?? '#1A1A2E'}
@@ -170,8 +122,20 @@ export default function WhatsAppPostScreen() {
             fit={campaignDraft?.imageFit ?? 'cover'}
             adjustments={adjustments}
             effect={campaignDraft?.effect ?? 'original'}
-            ref={posterRef}
           />
+
+          {/* Caption input */}
+          <View style={styles.waCaptionRow}>
+              <TextInput
+              style={[styles.waCaptionInput, { color: 'rgba(255,255,255,0.6)', fontFamily: 'Inter_400Regular' }]}
+                defaultValue={shareCaption}
+                placeholder="Add a caption..."
+              placeholderTextColor="rgba(255,255,255,0.3)"
+            />
+            <TouchableOpacity style={[styles.waSendBtn, { backgroundColor: '#25D366' }]}>
+              <Feather name="send" size={16} color="#fff" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Info card */}
@@ -232,16 +196,7 @@ const styles = StyleSheet.create({
   waTime: { fontSize: 12 },
   waStatusName: { paddingHorizontal: 16, marginBottom: 12 },
   waName: { fontSize: 16 },
-  waProductCard: { margin: 12, borderRadius: 16, overflow: 'hidden', paddingTop: 16 },
-  waPosterTitle: { color: '#fff', fontSize: 18, lineHeight: 23, paddingHorizontal: 14, paddingBottom: 12 },
-  waProductImage: { height: 180, width: '100%', alignItems: 'center', justifyContent: 'center' },
-  waImageFrame: { position: 'relative' },
-  waProductTitle: { fontSize: 20, textAlign: 'center', lineHeight: 28 },
-  waProductInfo: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 14 },
-  waProductPrice: { fontSize: 20 },
-  waDelivery: { color: 'rgba(255,255,255,0.65)', fontSize: 11, marginTop: 2 },
-  waShopBtn: { paddingHorizontal: 20, paddingVertical: 10, borderRadius: 20 },
-  waShopText: { fontSize: 14 },
+  posterCard: { width: 'auto', minHeight: 560, marginHorizontal: 12, borderRadius: 16 },
   waCaptionRow: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 14, gap: 10 },
   waCaptionInput: { flex: 1, fontSize: 14 },
   waSendBtn: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
@@ -254,5 +209,4 @@ const styles = StyleSheet.create({
   footer: { paddingHorizontal: 16, paddingTop: 12, borderTopWidth: 1 },
   postBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', padding: 16, borderRadius: 16, gap: 10 },
   postText: { fontSize: 16, color: '#fff' },
-  hiddenPoster: { position: 'absolute', left: -10000, top: 0, opacity: 0.01 },
 });

@@ -205,6 +205,9 @@ export async function renderPosterToDataUrl(options: PosterExportOptions): Promi
 
   context.fillStyle = 'rgba(255,255,255,0.78)';
   context.font = '600 26px Inter, Arial, sans-serif';
-  context.fillText('Tap the link in the caption to shop', 70, 1810);
+  const linkText = options.link
+    ? `Shop now: ${options.link.length > 56 ? `${options.link.slice(0, 53)}…` : options.link}`
+    : 'Tap the link in the caption to shop';
+  context.fillText(linkText, 70, 1810);
   return canvas.toDataURL('image/jpeg', 0.92);
 }
